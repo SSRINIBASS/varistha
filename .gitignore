@@ -1,0 +1,79 @@
+# =============================================================================
+# Varistha .gitignore
+# =============================================================================
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.whl
+.venv/
+venv/
+env/
+.uv/
+.mypy_cache/
+.pyright/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# ---------- Node.js ----------
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+.eslintcache
+
+# ---------- IDE ----------
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ---------- Docker ----------
+docker-compose.override.yml
+
+# ---------- Environment ----------
+.env
+.env.local
+.env.*.local
+!.env.example
+!deploy/.env.example
+
+# ---------- Secrets ----------
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+
+# ---------- OS ----------
+.DS_Store
+Desktop.ini
+$RECYCLE.BIN/
+
+# ---------- Logs ----------
+*.log
+logs/
+npm-debug.log*
+pnpm-debug.log*
+
+# ---------- Build artifacts ----------
+*.tar.gz
+*.zip
