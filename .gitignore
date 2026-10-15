@@ -26,6 +26,9 @@ htmlcov/
 .coverage.*
 coverage.xml
 *.cover
+*.db
+*.sqlite*
+demo-agent.yaml
 
 # ---------- Node.js ----------
 node_modules/

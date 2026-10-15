@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Phase 1 — Walking Skeleton (Week 2-3)
 
 #### Added
+- `apps/ui`: Minimal Web UI dashboard (Next.js 16 App Router, TypeScript strict mode, Tailwind CSS v4, Lucide icons)
+  - Agents Registry View (`/agents` and `/`): Dense table of registered AI employees, search and stage filters, stage badges (`Draft`, `Prototype`, `Staging`, `Production`, `Deprecated`, `Retired`), autonomy tags (`L0`-`L3`), and run triggers
+  - Execution Runs View (`/runs`): Historical and active runs monitor with status badges, token usage, cost attribution, and trace view links
+  - Trace Waterfall View (`/runs/[id]`): High-fidelity custom Gantt timeline displaying root `agent.run` and child `llm.call` spans with offset calculations, duration bars, and interactive span attribute inspection
+  - Design system compliance: Non-blocking loading skeletons, empty state guides, error alerts with retry handlers, and zero hardcoded colors
+  - Interactive Run Trigger Modal (`TriggerRunModal`): Form for testing and executing agent runs with JSON payload validation directly from the browser
+  - API Integration: Added `CORSMiddleware` in `apps/api/src/main.py` and global `GET /api/v1/runs` endpoint in `runtime/router.py`
+  - 17 Vitest unit and component tests passing cleanly
+- `docs/adr/0009-minimal-ui-architecture-and-waterfall.md` — ADR documenting UI architecture, custom trace waterfall, and design system
 - `packages/cli`: Varistha CLI developer workflow commands (`init`, `apply`, `run`)
   - Scaffolding (`varistha init [NAME]`): Interactive or flag-driven creation of canonical `agent.yaml` specifications compliant with `varistha-spec`
   - Declarative sync (`varistha apply -f <path>`): Offline local spec validation followed by idempotent API registration (`POST /api/v1/agents` or `POST /api/v1/agents/{id}/versions`)

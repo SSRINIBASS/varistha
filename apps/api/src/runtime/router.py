@@ -13,6 +13,7 @@ from runtime.service import (
     AgentNotFoundError,
     NoVersionFoundError,
     get_run,
+    list_all_runs,
     list_runs_for_agent,
     resolve_agent,
     trigger_agent_run,
@@ -114,3 +115,23 @@ async def get_run_detail(
         )
 
     return RunResponse.model_validate(run)
+
+
+@router.get(
+    "/api/v1/runs",
+    response_model=RunListResponse,
+    summary="List all runs",
+)
+async def get_all_runs(
+    session: DbSession,
+    agent_id: Annotated[uuid.UUID | None, Query(description="Filter by agent UUID.")] = None,
+    status: Annotated[str | None, Query(description="Filter by execution status.")] = None,
+    limit: Annotated[int, Query(ge=1, le=100, description="Items per page.")] = 50,
+    offset: Annotated[int, Query(ge=0, description="Pagination offset.")] = 0,
+) -> RunListResponse:
+    """List execution runs across all agents with optional filtering."""
+    runs, total = await list_all_runs(
+        session, agent_id=agent_id, status=status, limit=limit, offset=offset
+    )
+    items = [RunResponse.model_validate(r) for r in runs]
+    return RunListResponse(items=items, total=total, limit=limit, offset=offset)

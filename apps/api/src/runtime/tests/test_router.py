@@ -167,3 +167,31 @@ async def test_get_run_detail_not_found(async_client: AsyncClient) -> None:
     resp = await async_client.get(f"/api/v1/runs/{unknown_id}")
     assert resp.status_code == 404
     assert "not found" in resp.json()["detail"].lower()
+
+
+async def test_list_all_runs_and_filters(async_client: AsyncClient) -> None:
+    """GET /api/v1/runs lists all runs across agents and supports filtering."""
+    spec_a = _make_spec(name="global-run-a")
+    spec_b = _make_spec(name="global-run-b")
+    res_a = await async_client.post("/api/v1/agents", json=spec_a)
+    await async_client.post("/api/v1/agents", json=spec_b)
+    agent_a_id = res_a.json()["id"]
+
+    await async_client.post("/api/v1/agents/global-run-a/runs", json={"input": {}})
+    await async_client.post("/api/v1/agents/global-run-b/runs", json={"input": {}})
+
+    # All runs
+    all_resp = await async_client.get("/api/v1/runs")
+    assert all_resp.status_code == 200
+    assert all_resp.json()["total"] >= 2
+
+    # Filter by agent_id
+    agent_resp = await async_client.get(f"/api/v1/runs?agent_id={agent_a_id}")
+    assert agent_resp.status_code == 200
+    data = agent_resp.json()
+    assert all(r["agent_id"] == agent_a_id for r in data["items"])
+
+    # Filter by status
+    status_resp = await async_client.get("/api/v1/runs?status=completed")
+    assert status_resp.status_code == 200
+    assert all(r["status"] == "completed" for r in status_resp.json()["items"])

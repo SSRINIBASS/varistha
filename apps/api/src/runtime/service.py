@@ -202,3 +202,32 @@ async def list_runs_for_agent(
     runs = list(res.scalars().all())
 
     return runs, total
+
+
+async def list_all_runs(
+    session: AsyncSession,
+    agent_id: uuid.UUID | None = None,
+    status: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> tuple[list[Run], int]:
+    """List runs across all agents with optional filtering and pagination."""
+    count_stmt = select(func.count(Run.id))
+    query = select(Run).order_by(Run.created_at.desc())
+
+    if agent_id is not None:
+        count_stmt = count_stmt.where(Run.agent_id == agent_id)
+        query = query.where(Run.agent_id == agent_id)
+
+    if status is not None:
+        count_stmt = count_stmt.where(Run.status == status)
+        query = query.where(Run.status == status)
+
+    count_res = await session.execute(count_stmt)
+    total = count_res.scalar_one()
+
+    query = query.limit(limit).offset(offset)
+    res = await session.execute(query)
+    runs = list(res.scalars().all())
+
+    return runs, total

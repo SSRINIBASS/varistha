@@ -1,6 +1,7 @@
 """Varistha Control Plane API — FastAPI application entry point."""
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from observability.router import router as observability_router
 from registry.router import router as registry_router
 from runtime.router import router as runtime_router
@@ -13,6 +14,14 @@ app = FastAPI(
     ),
     version="0.1.0",
     license_info={"name": "Apache-2.0", "url": "https://www.apache.org/licenses/LICENSE-2.0"},
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(registry_router)
