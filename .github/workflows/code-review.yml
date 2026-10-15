@@ -1,0 +1,90 @@
+name: Code Review
+
+on:
+  push:
+    branches: [main, "phase-*"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  code-review-summary:
+    name: Automated Code Review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for diff analysis
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-packages --frozen
+
+      # --- Python Quality Checks ---
+      - name: "[PY] Ruff lint"
+        run: uv run ruff check . --output-format=github
+
+      - name: "[PY] Ruff format"
+        run: uv run ruff format --check .
+
+      - name: "[PY] Pyright strict"
+        run: uv run pyright apps/ packages/ --outputjson | python scripts/pyright_to_github.py || true
+
+      - name: "[PY] Tests + coverage"
+        run: uv run pytest --cov --cov-report=term-missing --cov-fail-under=80 -m "not integration and not e2e"
+
+      - name: "[PY] Bandit security"
+        run: uv run bandit -r apps/ packages/ -ll -f json | python scripts/bandit_to_github.py || true
+
+      - name: "[PY] pip-audit"
+        run: uv run pip-audit --format=json | python scripts/pipaudit_to_github.py || true
+
+      # --- Architecture ---
+      - name: "[ARCH] Boundary check"
+        run: uv run python scripts/check_boundaries.py
+
+      # --- Frontend ---
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: apps/ui/pnpm-lock.yaml
+
+      - name: Install UI deps
+        run: pnpm install --frozen-lockfile
+        working-directory: apps/ui
+
+      - name: "[UI] ESLint"
+        run: pnpm lint
+        working-directory: apps/ui
+
+      - name: "[UI] TypeScript"
+        run: pnpm tsc --noEmit
+        working-directory: apps/ui
+
+      - name: Code review summary
+        if: always()
+        run: |
+          echo "## 🔍 Automated Code Review Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruff lint | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pyright | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests (≥80% cov) | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security (bandit) | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Architecture boundaries | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ESLint | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
