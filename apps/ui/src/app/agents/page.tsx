@@ -14,6 +14,7 @@ import {
   Activity,
   RefreshCw,
   Search,
+  Layers,
 } from "lucide-react";
 import { getAgents } from "@/lib/api";
 import type { Agent } from "@/lib/types";
@@ -102,6 +103,14 @@ export default function AgentsPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link
+            href="/lifecycle"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors cursor-pointer shadow-xs"
+            title="Switch to Lifecycle Kanban view"
+          >
+            <Layers className="w-3.5 h-3.5 text-muted-foreground" />
+            <span>Lifecycle Board</span>
+          </Link>
           <button
             type="button"
             onClick={fetchAgentList}

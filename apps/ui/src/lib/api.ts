@@ -6,12 +6,18 @@ import type {
   AgentDetail,
   AgentListResponse,
   AgentVersion,
+  GateEvaluation,
   HealthStatus,
+  PromoteAgentRequest,
+  PromoteAgentResponse,
   Run,
   RunListResponse,
   SpanListResponse,
+  SpecDiff,
+  StageTransition,
   TraceDetailResponse,
 } from "./types";
+
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -83,10 +89,13 @@ export async function getAgent(idOrName: string): Promise<AgentDetail> {
 export async function getAgentVersions(
   idOrName: string
 ): Promise<AgentVersion[]> {
-  const res = await request<{ items: AgentVersion[] }>(
+  const res = await request<AgentVersion[] | { items: AgentVersion[] }>(
     `/api/v1/agents/${encodeURIComponent(idOrName)}/versions`
   );
-  return res.items || [];
+  if (Array.isArray(res)) {
+    return res;
+  }
+  return res?.items || [];
 }
 
 export async function triggerRun(
@@ -143,3 +152,57 @@ export async function getTrace(traceId: string): Promise<TraceDetailResponse> {
     `/api/v1/traces/${encodeURIComponent(traceId)}`
   );
 }
+
+export async function getGateEvaluation(
+  idOrName: string,
+  targetStage: string,
+  options?: {
+    replacement?: string | null | undefined;
+    kill_switch_verified?: boolean | null | undefined;
+    secrets_revoked?: boolean | null | undefined;
+  }
+): Promise<GateEvaluation> {
+  const params = new URLSearchParams();
+  if (options?.replacement) params.set("replacement", options.replacement);
+  if (options?.kill_switch_verified !== undefined)
+    params.set("kill_switch_verified", String(options.kill_switch_verified));
+  if (options?.secrets_revoked !== undefined)
+    params.set("secrets_revoked", String(options.secrets_revoked));
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return request<GateEvaluation>(
+    `/api/v1/agents/${encodeURIComponent(idOrName)}/gates/${encodeURIComponent(targetStage)}${query}`
+  );
+}
+
+export async function promoteAgent(
+  idOrName: string,
+  payload: PromoteAgentRequest
+): Promise<PromoteAgentResponse> {
+  return request<PromoteAgentResponse>(
+    `/api/v1/agents/${encodeURIComponent(idOrName)}/promote`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+}
+
+export async function getStageHistory(
+  idOrName: string
+): Promise<StageTransition[]> {
+  return request<StageTransition[]>(
+    `/api/v1/agents/${encodeURIComponent(idOrName)}/history`
+  );
+}
+
+export async function getVersionDiff(
+  idOrName: string,
+  v1: string,
+  v2: string
+): Promise<SpecDiff> {
+  return request<SpecDiff>(
+    `/api/v1/agents/${encodeURIComponent(idOrName)}/versions/${encodeURIComponent(v1)}/diff/${encodeURIComponent(v2)}`
+  );
+}
+

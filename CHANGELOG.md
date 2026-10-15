@@ -31,8 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `POST /api/v1/agents/{id_or_name}/promote`: Evaluate gates, advance agent stage, record immutable audit entry
   - `GET /api/v1/agents/{id_or_name}/history`: Query chronological stage transition audit history
   - `GET /api/v1/agents/{id_or_name}/gates/{target_stage}`: Dry-run preview endpoint for live UI checklists
-- `docs/adr/0010-stage-promotion-gates-and-audit-log.md`: Architecture decision record for stage transitions and gates
-- Full suite passing: 214 tests across monorepo with 96% overall test coverage
+- `apps/ui`: Complete Lifecycle Governance and Promotion UI
+  - `/lifecycle`: Interactive 6-column Kanban board (`Draft`, `Prototype`, `Staging`, `Production`, `Deprecated`, `Retired`) with agent search, owner filters, and table/board view toggles
+  - `PromoteModal`: Real-time gate verification checklist with pass/fail badges, operator affirmations (kill switch test, secrets revocation), rollback reason prompts, and disabled-state gating
+  - `StageHistoryModal`: Immutable audit log modal displaying operator identity, timestamps, justifications, and expandable gate outcomes
+  - `VersionDiffModal`: Side-by-side version comparison with summary badges (+ added, - removed, ~ modified, ! breaking), prominent breaking change alert panel, and field-level delta table
+  - Full Vitest component suite with 23 passing tests and strict TypeScript verification (0 errors, 0 warnings)
+- `docs/checkpoints/2026-10-15-phase-2-complete.md`: Phase 2 exit criteria verification and checkpoint sign-off
+- Full suite passing: 214 Python tests (96% coverage) and 23 UI tests; clean bandit, pip-audit, and boundary checks
+
 
 
 ### Phase 1 — Walking Skeleton (Week 2-3)

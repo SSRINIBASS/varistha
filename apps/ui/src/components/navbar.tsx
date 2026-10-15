@@ -8,7 +8,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Activity } from "lucide-react";
+import { Bot, Activity, Layers } from "lucide-react";
 import { checkHealth } from "@/lib/api";
 
 export function Navbar() {
@@ -32,6 +32,7 @@ export function Navbar() {
 
   const navItems = [
     { label: "Agents", href: "/agents", icon: Bot },
+    { label: "Lifecycle", href: "/lifecycle", icon: Layers },
     { label: "Runs", href: "/runs", icon: Activity },
   ];
 

@@ -108,3 +108,65 @@ export interface HealthStatus {
   status: string;
   service: string;
 }
+
+export interface GateCheck {
+  name: string;
+  passed: boolean;
+  message: string;
+}
+
+export interface GateEvaluation {
+  allowed: boolean;
+  from_stage: string;
+  to_stage: string;
+  is_rollback: boolean;
+  checks: GateCheck[];
+  error_message?: string | null;
+}
+
+export interface StageTransition {
+  id: string;
+  agent_id: string;
+  from_stage: string;
+  to_stage: string;
+  promoted_by: string;
+  reason?: string | null;
+  gate_results: Array<Record<string, unknown>>;
+  created_at: string;
+}
+
+export interface PromoteAgentRequest {
+  to_stage: string;
+  promoted_by: string;
+  reason?: string | null | undefined;
+  replacement?: string | null | undefined;
+  kill_switch_verified?: boolean | null | undefined;
+  secrets_revoked?: boolean | null | undefined;
+}
+
+export interface PromoteAgentResponse {
+  agent: AgentDetail;
+  transition: StageTransition;
+  evaluation: GateEvaluation;
+}
+
+export interface DiffEntry {
+  field: string;
+  change_type: string;
+  old_value?: unknown;
+  new_value?: unknown;
+  is_breaking: boolean;
+  breaking_reason?: string | null;
+  description: string;
+}
+
+export interface SpecDiff {
+  from_version?: string | null;
+  to_version?: string | null;
+  has_changes: boolean;
+  has_breaking_changes: boolean;
+  summary: Record<string, number>;
+  entries: DiffEntry[];
+  breaking_entries: DiffEntry[];
+}
+

@@ -84,3 +84,32 @@ export function WaterfallSkeleton({
     </div>
   );
 }
+
+interface CardSkeletonProps {
+  count?: number;
+  className?: string;
+}
+
+export function CardSkeleton({
+  count = 3,
+  className = "",
+}: CardSkeletonProps) {
+  return (
+    <div className={`space-y-3 ${className}`}>
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={`card-skel-${i}`}
+          className="rounded-lg border border-border/60 bg-card p-3 space-y-2.5 animate-pulse"
+        >
+          <div className="flex justify-between items-center">
+            <div className="h-4 w-24 bg-muted rounded" />
+            <div className="h-4 w-12 bg-muted rounded" />
+          </div>
+          <div className="h-3 w-3/4 bg-muted/60 rounded" />
+          <div className="h-3 w-1/2 bg-muted/40 rounded" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
