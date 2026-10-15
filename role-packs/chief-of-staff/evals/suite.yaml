@@ -1,0 +1,152 @@
+name: chief-of-staff-benchmark
+description: Comprehensive evaluation benchmark for the Executive Chief of Staff agent.
+min_pass_rate: 0.85
+evaluators:
+  - name: synthesis-check
+    type: contains
+    threshold: 1.0
+  - name: json-schema-validator
+    type: json-schema
+    config:
+      schema:
+        type: object
+        properties:
+          context_title: { type: string }
+          meeting_date: { type: string }
+          executive_summary: { type: string }
+          decisions_made:
+            type: array
+            minItems: 1
+            items: { type: string }
+          action_items:
+            type: array
+            minItems: 2
+            items:
+              type: object
+              properties:
+                owner: { type: string }
+                task: { type: string }
+                deadline: { type: string }
+                priority:
+                  type: string
+                  enum: ["P0_CRITICAL", "P1_HIGH", "P2_MEDIUM"]
+              required: ["owner", "task", "deadline", "priority"]
+          functional_radar:
+            type: object
+            properties:
+              engineering:
+                type: object
+                properties:
+                  status: { type: string, enum: ["GREEN", "AMBER", "RED"] }
+                  summary: { type: string }
+                required: ["status", "summary"]
+              sales:
+                type: object
+                properties:
+                  status: { type: string, enum: ["GREEN", "AMBER", "RED"] }
+                  summary: { type: string }
+                required: ["status", "summary"]
+              support:
+                type: object
+                properties:
+                  status: { type: string, enum: ["GREEN", "AMBER", "RED"] }
+                  summary: { type: string }
+                required: ["status", "summary"]
+              finance:
+                type: object
+                properties:
+                  status: { type: string, enum: ["GREEN", "AMBER", "RED"] }
+                  summary: { type: string }
+                required: ["status", "summary"]
+            required: ["engineering", "sales", "support", "finance"]
+          ceo_daily_briefing:
+            type: object
+            properties:
+              top_priorities: { type: array, minItems: 2 }
+              critical_blockers: { type: array }
+              meeting_prep_notes: { type: array }
+            required: ["top_priorities", "critical_blockers", "meeting_prep_notes"]
+        required: [
+          "context_title",
+          "executive_summary",
+          "decisions_made",
+          "action_items",
+          "functional_radar",
+          "ceo_daily_briefing"
+        ]
+
+cases:
+  - id: case-q4-board-prep
+    name: Executive Sync Preparing Q4 Board Meeting
+    input:
+      meeting_title: "Executive Staff Sync: Q4 Board Deck & Runway Alignment"
+      transcript: |
+        CEO: We have our Q4 board meeting next Thursday. We need our metrics locked down.
+        CFO: Revenue reached $1.4M ARR, up 35% QoQ. Runway is healthy at 21 months. We need to agree on our 2027 hiring plan.
+        VP Eng: On engineering, we shipped Phase 5 plugin architecture and all 7 role packs. Core API uptime was 99.98%. But we need 2 more senior backend engineers to support enterprise VPC deployments.
+        Head of Sales: Pipeline is healthy with 22 active POCs. Biggest blocker is SOC2 Type II report—3 enterprise deals ($180k ACV total) are waiting on the final auditor letter.
+        CEO: Decisions: 1) Approved hiring 2 backend engineers immediately. 2) Move board meeting dry run to Monday. 3) Maya, send the auditor letter to sales as soon as signed.
+    expected:
+      decisions_keywords: ["hiring 2 backend engineers", "board meeting dry run", "auditor letter"]
+      action_items_min: 3
+    evaluator: synthesis-check
+
+  - id: case-post-incident-review
+    name: Post-Incident Review on Recursive Loop Runaway
+    input:
+      meeting_title: "Post-Incident Review: Production Loop Spending Incident"
+      transcript: |
+        VP Eng: Yesterday an agent ran an unconstrained retry loop for 4 hours and incurred $2,400 in API costs.
+        CEO: How did our circuit breakers not catch this?
+        Lead Architect: The daily budget cap was optional in the agent spec. We must make budget caps strictly mandatory in spec validation.
+        CEO: Decision: Every agent in staging and production must have a non-null max_usd_per_day. Spec validator will reject any agent without it.
+        VP Eng: Maya will update packages/spec validator by tomorrow 5 PM (P0). David will audit all customer configs by Friday (P1).
+    expected:
+      decisions_keywords: ["mandatory budget cap", "spec validator"]
+      action_items_min: 2
+    evaluator: synthesis-check
+
+  - id: case-weekly-leadership-standup
+    name: Monday Morning Cross-Functional Leadership Standup
+    input:
+      meeting_title: "Monday Executive Operations Standup"
+      transcript: |
+        CEO: Let's do a quick round-robin on company vitals.
+        VP Eng: Engineering is green. We merged OpenTelemetry tracing and all 360+ tests are passing in CI.
+        Head of Sales: Sales is green. Added 8 new enterprise opportunities this week.
+        Head of Support: Support is amber. Average resolution time increased to 45 minutes due to new plugin questions.
+        CFO: Finance is green. Cash burn on track.
+        CEO: Action items: Head of Support to publish the Plugin FAQ by Wednesday. VP Eng to assist with technical doc review.
+    expected:
+      decisions_keywords: ["Plugin FAQ"]
+      action_items_min: 2
+    evaluator: synthesis-check
+
+  - id: case-gtm-pivot-enterprise
+    name: Strategic GTM Pivot to Enterprise Compliance
+    input:
+      meeting_title: "Strategic Session: Self-Hosted Enterprise Focus"
+      transcript: |
+        Head of Sales: Mid-market churn is high because competitors offer hosted drag-and-drop builders. Where we win decisively is enterprise security—VPC isolation and audit trails.
+        CEO: Let's double down on enterprise compliance. We will position Varistha as 'The Enterprise Control Plane for Autonomous Agents'.
+        Marketing: I will draft the new homepage copy and positioning battlecard by Thursday.
+        Sales: I will adjust outbound SDR sequences to target CISOs and VPs of Engineering.
+    expected:
+      decisions_keywords: ["Enterprise Control Plane", "VPC isolation"]
+      action_items_min: 2
+    evaluator: synthesis-check
+
+  - id: case-compensation-headcount-planning
+    name: Headcount Allocation and Compensation Sync
+    input:
+      meeting_title: "Executive Sync: 2027 Headcount & Talent Planning"
+      transcript: |
+        CEO: We need to finalize headcount for next year before the board presentation.
+        CFO: With our current $1.4M ARR and $3M seed funding, we can safely open 5 roles without dropping runway below 18 months.
+        VP Eng: We need 3 engineers (2 backend, 1 frontend/fullstack).
+        Head of Sales: We need 1 enterprise AE and 1 solutions architect.
+        CEO: Approved. HR to open these 5 reqs on greenhouse by next Monday.
+    expected:
+      decisions_keywords: ["5 roles", "runway", "reqs"]
+      action_items_min: 2
+    evaluator: synthesis-check

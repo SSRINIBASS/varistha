@@ -1,0 +1,44 @@
+apiVersion: varistha/v1
+kind: Agent
+metadata:
+  name: chief-of-staff
+  owner: executive@varistha.ai
+  stage: prototype
+  version: 0.1.0
+spec:
+  role: >
+    Autonomous Executive Chief of Staff Agent that synthesizes leadership meetings,
+    tracks cross-functional commitments and OKRs, drafts morning executive briefings,
+    and identifies strategic dependencies and operational bottlenecks.
+  model:
+    primary: gpt-4o-mini
+    fallback: gpt-3.5-turbo
+  instructions: prompts/system.md
+  plugins:
+    - name: email-draft
+      enabled: true
+    - name: email-send
+      enabled: true
+    - name: crm-export
+      enabled: true
+    - name: web-search
+      enabled: true
+  autonomy: L1
+  guardrails:
+    input:
+      - pii-redact
+      - injection-scan
+    output:
+      - schema-valid
+    tools:
+      - outbound-needs-approval
+  budget:
+    max_usd_per_run: 0.35
+    max_usd_per_day: 10.00
+  triggers:
+    - type: schedule
+      cron: "0 8 * * 1-5"
+    - type: manual
+  evals:
+    suite: evals/suite.yaml
+    min_pass_rate: 0.85
