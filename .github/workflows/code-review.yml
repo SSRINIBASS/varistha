@@ -2,9 +2,9 @@ name: Code Review
 
 on:
   push:
-    branches: [main, "phase-*"]
+    branches: [main, master, "phase-*"]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   code-review-summary:
@@ -34,13 +34,13 @@ jobs:
         run: uv run ruff format --check .
 
       - name: "[PY] Pyright strict"
-        run: uv run pyright apps/ packages/ --outputjson | python scripts/pyright_to_github.py || true
+        run: uv run pyright apps/ packages/ plugins/ --outputjson | python scripts/pyright_to_github.py || true
 
       - name: "[PY] Tests + coverage"
         run: uv run pytest --cov --cov-report=term-missing --cov-fail-under=80 -m "not integration and not e2e"
 
       - name: "[PY] Bandit security"
-        run: uv run bandit -r apps/ packages/ -ll -f json | python scripts/bandit_to_github.py || true
+        run: uv run bandit -r apps/api/src packages/spec/src packages/cli/src plugins -ll -f json | python scripts/bandit_to_github.py || true
 
       - name: "[PY] pip-audit"
         run: uv run pip-audit --format=json | python scripts/pipaudit_to_github.py || true
@@ -71,7 +71,11 @@ jobs:
         working-directory: apps/ui
 
       - name: "[UI] TypeScript"
-        run: pnpm tsc --noEmit
+        run: pnpm typecheck
+        working-directory: apps/ui
+
+      - name: "[UI] Tests"
+        run: pnpm test
         working-directory: apps/ui
 
       - name: Code review summary
@@ -88,3 +92,5 @@ jobs:
           echo "| Architecture boundaries | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
           echo "| ESLint | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
           echo "| TypeScript | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| UI Tests | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+

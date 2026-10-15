@@ -10,6 +10,7 @@ _roots = [
     Path(__file__).parent / "packages" / "cli" / "src",
     Path(__file__).parent / "packages" / "spec" / "src",
     Path(__file__).parent / "packages" / "sdk" / "src",
+    Path(__file__).parent / "plugins",
 ]
 for _root in _roots:
     _str = str(_root)

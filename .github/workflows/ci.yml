@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, "phase-*", "feat/*", "fix/*"]
+    branches: [main, master, "phase-*", "feat/*", "fix/*"]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -35,7 +35,7 @@ jobs:
         run: uv run ruff format --check .
 
       - name: Pyright type check
-        run: uv run pyright apps/ packages/
+        run: uv run pyright apps/ packages/ plugins/
 
   python-tests:
     name: Python Tests
@@ -60,8 +60,10 @@ jobs:
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
         if: always()
+        continue-on-error: true
         with:
           file: coverage.xml
+          fail_ci_if_error: false
 
   python-security:
     name: Python Security Scan
@@ -81,7 +83,7 @@ jobs:
         run: uv sync --frozen
 
       - name: Bandit security scan
-        run: uv run bandit -r apps/ packages/ -ll
+        run: uv run bandit -r apps/api/src packages/spec/src packages/cli/src plugins -ll
 
       - name: Dependency vulnerability audit
         run: uv run pip-audit

@@ -1,0 +1,43 @@
+name: Feature Request
+description: Suggest an idea or capability enhancement for Varistha
+title: "[FEAT] "
+labels: ["enhancement", "proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We welcome feature ideas that align with Varistha's mission of open-source agent governance.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem or architectural gap?
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: A clear and concise description of what you want to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions or workarounds you've considered.
+  - type: dropdown
+    id: context
+    attributes:
+      label: Primary Architecture Context
+      description: Which bounded context does this change affect?
+      options:
+        - Registry & Lifecycle
+        - Runtime & Execution
+        - Observability & Tracing
+        - Governance & Guardrails
+        - UI & Control Plane
+        - Plugins & Role Packs
+    validations:
+      required: true

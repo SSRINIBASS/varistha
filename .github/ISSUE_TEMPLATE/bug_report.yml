@@ -1,0 +1,46 @@
+name: Bug Report
+description: Create a report to help us improve Varistha
+title: "[BUG] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue! Please ensure you have checked existing issues before filing.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Start control plane with `docker compose up`
+        2. Execute `varistha apply -f agent.yaml`
+        3. Observe error...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS version, Python version, Node version, Docker version.
+      value: |
+        - OS: [e.g. Ubuntu 22.04, Windows 11, macOS 14]
+        - Python: 3.12
+        - Node: 20
+        - Docker Compose: v2.x
+    validations:
+      required: true
