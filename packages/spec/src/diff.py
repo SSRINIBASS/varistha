@@ -72,7 +72,6 @@ def _ensure_spec(spec: Any) -> AgentSpec:
     raise TypeError(msg)
 
 
-
 def _diff_metadata(old: AgentSpec, new: AgentSpec, entries: list[DiffEntry]) -> None:
     """Compare metadata block."""
     if old.metadata.name != new.metadata.name:

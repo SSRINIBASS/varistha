@@ -115,6 +115,7 @@ def test_diff_missing_arguments(runner: CliRunner) -> None:
 
 def test_diff_versions_success(runner: CliRunner, monkeypatch: pytest.MonkeyPatch) -> None:
     """`varistha diff <agent> <v1> <v2>` prints diff and exits 0."""
+
     def _mock_diff(self: Any, id_or_name: str, v1: str, v2: str) -> dict[str, Any]:
         return MOCK_DIFF_BREAKING
 
@@ -129,6 +130,7 @@ def test_diff_versions_success(runner: CliRunner, monkeypatch: pytest.MonkeyPatc
 
 def test_diff_versions_identical(runner: CliRunner, monkeypatch: pytest.MonkeyPatch) -> None:
     """Identical versions output 'No differences detected'."""
+
     def _mock_diff(self: Any, id_or_name: str, v1: str, v2: str) -> dict[str, Any]:
         return MOCK_DIFF_IDENTICAL
 
@@ -143,6 +145,7 @@ def test_diff_file_preview_success(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """`varistha diff -f <file.yaml>` previews candidate diff."""
+
     def _mock_preview(
         self: Any, id_or_name: str, spec: dict[str, Any], base_version: str | None = None
     ) -> dict[str, Any]:
@@ -179,6 +182,7 @@ def test_diff_strict_fails_on_breaking_changes(
     runner: CliRunner, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """`varistha diff --strict` exits 1 if breaking changes exist."""
+
     def _mock_diff(self: Any, id_or_name: str, v1: str, v2: str) -> dict[str, Any]:
         return MOCK_DIFF_BREAKING
 
@@ -192,6 +196,7 @@ def test_diff_strict_passes_on_safe_changes(
     runner: CliRunner, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """`varistha diff --strict` exits 0 if only safe changes exist."""
+
     def _mock_diff(self: Any, id_or_name: str, v1: str, v2: str) -> dict[str, Any]:
         return MOCK_DIFF_SAFE
 
@@ -199,7 +204,6 @@ def test_diff_strict_passes_on_safe_changes(
 
     result = runner.invoke(cli, ["diff", "test-agent", "0.1.0", "0.1.1", "--strict"])
     assert result.exit_code == 0
-
 
 
 def test_diff_connection_error(runner: CliRunner, monkeypatch: pytest.MonkeyPatch) -> None:
