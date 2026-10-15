@@ -1,9 +1,7 @@
 """Smoke test for the Varistha API health endpoint."""
 
 from fastapi.testclient import TestClient
-
 from main import app
-
 
 client = TestClient(app)
 

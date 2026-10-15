@@ -78,8 +78,18 @@ pythonVersion = "3.12"
 typeCheckingMode = "strict"
 reportMissingImports = true
 reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+reportUnknownArgumentType = false
 venvPath = "."
 venv = ".venv"
+extraPaths = [
+    "apps/api/src",
+    "apps/worker/src",
+    "packages/cli/src",
+    "packages/spec/src",
+    "packages/sdk/src",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["apps", "packages"]

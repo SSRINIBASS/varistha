@@ -6,8 +6,12 @@ requires-python = ">=3.12"
 license = {text = "Apache-2.0"}
 dependencies = [
     "pydantic>=2.10.0",
+    "pydantic[email]>=2.10.0",
     "pyyaml>=6.0",
     "jsonschema>=4.23",
+    # email-validator is required by pydantic[email] for EmailStr validation.
+    # License: MIT. Actively maintained (v2+). Needed for agent owner field.
+    "email-validator>=2.1",
 ]
 
 [build-system]

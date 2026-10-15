@@ -1,0 +1,46 @@
+apiVersion: varistha/v1
+kind: Agent
+metadata:
+  name: lead-researcher
+  owner: founder@example.com
+  stage: prototype
+  version: 0.3.0
+spec:
+  role: >
+    Find and qualify B2B leads matching our ICP, draft a personalised first touch.
+  model:
+    primary: gpt-4o
+    fallback: ollama/llama3
+  instructions: ./prompts/lead-researcher.md
+  plugins:
+    - name: web-fetch
+      enabled: true
+    - name: web-search
+      enabled: true
+    - name: email-draft
+      enabled: true
+    - name: email-send
+      enabled: false
+    - name: linkedin-post
+      enabled: false
+  autonomy: L1
+  guardrails:
+    input:
+      - pii-redact
+      - injection-scan
+    output:
+      - schema-valid
+      - no-unverified-claims
+    tools:
+      - outbound-needs-approval
+      - rate-limit-50-per-day
+  budget:
+    max_usd_per_run: 0.50
+    max_usd_per_day: 10.00
+  triggers:
+    - type: schedule
+      cron: "0 9 * * 1-5"
+    - type: manual
+  evals:
+    suite: ./evals/lead-researcher.yaml
+    min_pass_rate: 0.85

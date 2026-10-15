@@ -1,0 +1,338 @@
+{
+  "$defs": {
+    "AgentMetadata": {
+      "additionalProperties": false,
+      "description": "Metadata block: identity, ownership, and lifecycle stage.",
+      "properties": {
+        "name": {
+          "description": "Unique slug identifier for the agent. Must match [a-z0-9][a-z0-9-]*.",
+          "title": "Name",
+          "type": "string"
+        },
+        "owner": {
+          "description": "E-mail address of the agent owner.",
+          "format": "email",
+          "title": "Owner",
+          "type": "string"
+        },
+        "stage": {
+          "description": "Lifecycle stage of the agent.",
+          "enum": [
+            "draft",
+            "prototype",
+            "staging",
+            "production",
+            "deprecated",
+            "retired"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "version": {
+          "description": "Semantic version string (e.g. 0.3.0).",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "owner",
+        "stage",
+        "version"
+      ],
+      "title": "AgentMetadata",
+      "type": "object"
+    },
+    "AgentSpecBody": {
+      "additionalProperties": false,
+      "description": "The 'spec' block: runtime behaviour, plugins, guardrails, budget, triggers, evals.",
+      "properties": {
+        "role": {
+          "description": "Plain-language description of what this agent does.",
+          "minLength": 1,
+          "title": "Role",
+          "type": "string"
+        },
+        "model": {
+          "$ref": "#/$defs/ModelConfig",
+          "description": "Primary and fallback model configuration."
+        },
+        "instructions": {
+          "description": "Relative file path to a prompt/instructions file OR inline instruction text. File existence is validated at runtime, not at parse time.",
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "plugins": {
+          "description": "Plugin toggles available to this agent.",
+          "items": {
+            "$ref": "#/$defs/PluginRef"
+          },
+          "title": "Plugins",
+          "type": "array"
+        },
+        "autonomy": {
+          "description": "Autonomy level. L0=suggest only, L1=act with approval, L2=act with sampled review, L3=autonomous within budget.",
+          "enum": [
+            "L0",
+            "L1",
+            "L2",
+            "L3"
+          ],
+          "title": "Autonomy",
+          "type": "string"
+        },
+        "guardrails": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GuardrailsConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional guardrail policy configuration."
+        },
+        "budget": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BudgetConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional per-run and per-day USD spend limits."
+        },
+        "triggers": {
+          "description": "One or more triggers that can start a run.",
+          "items": {
+            "$ref": "#/$defs/TriggerConfig"
+          },
+          "title": "Triggers",
+          "type": "array"
+        },
+        "evals": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvalConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional evaluation suite and minimum pass-rate gate."
+        }
+      },
+      "required": [
+        "role",
+        "model",
+        "instructions",
+        "autonomy"
+      ],
+      "title": "AgentSpecBody",
+      "type": "object"
+    },
+    "BudgetConfig": {
+      "additionalProperties": false,
+      "description": "Per-run and per-day USD spend limits.",
+      "properties": {
+        "max_usd_per_run": {
+          "description": "Maximum USD cost allowed per single run.",
+          "exclusiveMinimum": 0,
+          "title": "Max Usd Per Run",
+          "type": "number"
+        },
+        "max_usd_per_day": {
+          "description": "Maximum USD cost allowed across all runs in a calendar day.",
+          "exclusiveMinimum": 0,
+          "title": "Max Usd Per Day",
+          "type": "number"
+        }
+      },
+      "required": [
+        "max_usd_per_run",
+        "max_usd_per_day"
+      ],
+      "title": "BudgetConfig",
+      "type": "object"
+    },
+    "EvalConfig": {
+      "additionalProperties": false,
+      "description": "Evaluation suite reference and minimum pass-rate gate.",
+      "properties": {
+        "suite": {
+          "description": "Path or identifier of the evaluation suite YAML.",
+          "minLength": 1,
+          "title": "Suite",
+          "type": "string"
+        },
+        "min_pass_rate": {
+          "description": "Minimum fraction of eval cases that must pass (0.0-1.0).",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Min Pass Rate",
+          "type": "number"
+        }
+      },
+      "required": [
+        "suite",
+        "min_pass_rate"
+      ],
+      "title": "EvalConfig",
+      "type": "object"
+    },
+    "GuardrailsConfig": {
+      "additionalProperties": false,
+      "description": "Guardrail policy lists for input, output, and tool calls.",
+      "properties": {
+        "input": {
+          "description": "Input guardrail policy names.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Input",
+          "type": "array"
+        },
+        "output": {
+          "description": "Output guardrail policy names.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Output",
+          "type": "array"
+        },
+        "tools": {
+          "description": "Tool-call guardrail policy names.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Tools",
+          "type": "array"
+        }
+      },
+      "title": "GuardrailsConfig",
+      "type": "object"
+    },
+    "ModelConfig": {
+      "additionalProperties": false,
+      "description": "Model selection config: primary model and optional fallback.",
+      "properties": {
+        "primary": {
+          "description": "LiteLLM model identifier (e.g. gpt-4o, ollama/llama3).",
+          "minLength": 1,
+          "title": "Primary",
+          "type": "string"
+        },
+        "fallback": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional fallback LiteLLM model identifier.",
+          "title": "Fallback"
+        }
+      },
+      "required": [
+        "primary"
+      ],
+      "title": "ModelConfig",
+      "type": "object"
+    },
+    "PluginRef": {
+      "additionalProperties": false,
+      "description": "A plugin toggle within an agent spec.",
+      "properties": {
+        "name": {
+          "description": "Plugin name as declared in its manifest.",
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "enabled": {
+          "description": "Whether the plugin is active for this agent.",
+          "title": "Enabled",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "enabled"
+      ],
+      "title": "PluginRef",
+      "type": "object"
+    },
+    "TriggerConfig": {
+      "additionalProperties": false,
+      "description": "A run trigger: schedule (cron), webhook, or manual.",
+      "properties": {
+        "type": {
+          "description": "Trigger mechanism.",
+          "enum": [
+            "schedule",
+            "webhook",
+            "manual"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "cron": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cron expression (required when type=schedule). 5-field POSIX format.",
+          "title": "Cron"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "TriggerConfig",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Top-level Varistha agent specification (apiVersion: varistha/v1, kind: Agent).",
+  "properties": {
+    "apiVersion": {
+      "const": "varistha/v1",
+      "description": "Must be 'varistha/v1'.",
+      "title": "Apiversion",
+      "type": "string"
+    },
+    "kind": {
+      "const": "Agent",
+      "description": "Must be 'Agent'.",
+      "title": "Kind",
+      "type": "string"
+    },
+    "metadata": {
+      "$ref": "#/$defs/AgentMetadata"
+    },
+    "spec": {
+      "$ref": "#/$defs/AgentSpecBody"
+    }
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "title": "AgentSpec",
+  "type": "object"
+}
