@@ -252,3 +252,115 @@ export interface PolicyTestResponse {
   metadata: Record<string, unknown>;
 }
 
+// --- Evals & Confidence Domain Models ---
+
+export interface EvalSuite {
+  id: string;
+  name: string;
+  agent_id: string;
+  description?: string | null;
+  config: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EvalSuiteListResponse {
+  suites: EvalSuite[];
+  total: number;
+}
+
+export interface EvalRun {
+  id: string;
+  suite_id: string;
+  agent_id: string;
+  agent_version_id?: string | null;
+  status: "pending" | "running" | "completed" | "failed";
+  trigger: string;
+  pass_rate?: number | null;
+  total_cases: number;
+  passed_cases: number;
+  failed_cases: number;
+  duration_ms?: number | null;
+  error_message?: string | null;
+  created_at: string;
+  completed_at?: string | null;
+}
+
+export interface EvalRunListResponse {
+  runs: EvalRun[];
+  total: number;
+}
+
+export interface EvalResult {
+  id: string;
+  eval_run_id: string;
+  case_id: string;
+  case_name: string;
+  input_data: Record<string, unknown>;
+  expected_output?: unknown;
+  actual_output?: unknown;
+  passed: boolean;
+  score: number;
+  evaluator_name: string;
+  evaluator_type: string;
+  failure_reason?: string | null;
+  latency_ms?: number | null;
+  tokens_used?: number | null;
+  created_at: string;
+}
+
+export interface EvalRunDetail extends EvalRun {
+  results: EvalResult[];
+}
+
+export interface TestCaseComparison {
+  case_id: string;
+  case_name: string;
+  base_passed?: boolean | null;
+  base_score?: number | null;
+  candidate_passed?: boolean | null;
+  candidate_score?: number | null;
+  status: "regressed" | "improved" | "unchanged" | "added" | "removed";
+}
+
+export interface EvalComparisonReport {
+  suite_id: string;
+  base_run_id: string;
+  candidate_run_id: string;
+  base_version_id?: string | null;
+  candidate_version_id?: string | null;
+  base_pass_rate: number;
+  candidate_pass_rate: number;
+  pass_rate_delta: number;
+  status: "improved" | "regressed" | "unchanged";
+  total_cases_compared: number;
+  regressions_count: number;
+  improvements_count: number;
+  latency_delta_ms: number;
+  cases: TestCaseComparison[];
+}
+
+export interface ConfidenceSignal {
+  name: string;
+  weight: number;
+  score: number;
+  passed: boolean;
+  details: string;
+}
+
+export interface ReviewPriorityOutcome {
+  confidence_score: number;
+  review_priority: "low" | "medium" | "high" | "critical";
+  signals: ConfidenceSignal[];
+  rationale: string;
+}
+
+export interface ConfidenceEvaluationRequest {
+  agent_id: string;
+  version_id?: string | null;
+  output: unknown;
+  input_context?: unknown;
+  schema_def?: Record<string, unknown> | null;
+}
+
+

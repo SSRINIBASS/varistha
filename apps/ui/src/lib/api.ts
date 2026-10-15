@@ -10,6 +10,12 @@ import type {
   ApprovalItem,
   ApprovalsListResponse,
   ApprovalResolveRequest,
+  ConfidenceEvaluationRequest,
+  EvalComparisonReport,
+  EvalRunDetail,
+  EvalRunListResponse,
+  EvalSuite,
+  EvalSuiteListResponse,
   GateEvaluation,
   GlobalKillSwitchStatus,
   HealthStatus,
@@ -17,6 +23,7 @@ import type {
   PolicyTestResponse,
   PromoteAgentRequest,
   PromoteAgentResponse,
+  ReviewPriorityOutcome,
   Run,
   RunListResponse,
   SpanListResponse,
@@ -301,4 +308,80 @@ export async function testPolicy(
     body: JSON.stringify({ policy_name: policyName, payload, hook }),
   });
 }
+
+// --- Evals & Confidence API Methods ---
+
+export async function getEvalSuites(agentId?: string): Promise<EvalSuiteListResponse> {
+  const query = agentId ? `?agent_id=${encodeURIComponent(agentId)}` : "";
+  return request<EvalSuiteListResponse>(`/api/v1/evals/suites${query}`);
+}
+
+export async function getEvalSuite(suiteId: string): Promise<EvalSuite> {
+  return request<EvalSuite>(`/api/v1/evals/suites/${encodeURIComponent(suiteId)}`);
+}
+
+export async function createEvalSuite(payload: {
+  name: string;
+  agent_id: string;
+  description?: string;
+  config?: Record<string, unknown>;
+}): Promise<EvalSuite> {
+  return request<EvalSuite>("/api/v1/evals/suites", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function executeEvalSuite(
+  suiteId: string,
+  agentVersionId?: string,
+  trigger: string = "manual"
+): Promise<EvalRunDetail> {
+  const query = new URLSearchParams({ trigger });
+  if (agentVersionId) query.set("agent_version_id", agentVersionId);
+  return request<EvalRunDetail>(
+    `/api/v1/evals/suites/${encodeURIComponent(suiteId)}/execute?${query.toString()}`,
+    { method: "POST" }
+  );
+}
+
+export async function getEvalRuns(params?: {
+  agent_id?: string;
+  suite_id?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<EvalRunListResponse> {
+  const query = new URLSearchParams();
+  if (params?.agent_id) query.set("agent_id", params.agent_id);
+  if (params?.suite_id) query.set("suite_id", params.suite_id);
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.offset) query.set("offset", String(params.offset));
+  const qs = query.toString() ? `?${query.toString()}` : "";
+  return request<EvalRunListResponse>(`/api/v1/evals/runs${qs}`);
+}
+
+export async function getEvalRun(runId: string): Promise<EvalRunDetail> {
+  return request<EvalRunDetail>(`/api/v1/evals/runs/${encodeURIComponent(runId)}`);
+}
+
+export async function compareEvalRuns(
+  baseRunId: string,
+  candidateRunId: string
+): Promise<EvalComparisonReport> {
+  const query = new URLSearchParams({
+    base_run_id: baseRunId,
+    candidate_run_id: candidateRunId,
+  });
+  return request<EvalComparisonReport>(`/api/v1/evals/compare?${query.toString()}`);
+}
+
+export async function evaluateConfidence(
+  payload: ConfidenceEvaluationRequest
+): Promise<ReviewPriorityOutcome> {
+  return request<ReviewPriorityOutcome>("/api/v1/governance/confidence/evaluate", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 

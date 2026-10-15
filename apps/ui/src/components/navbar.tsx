@@ -17,6 +17,7 @@ import {
   ShieldAlert,
   Search,
   Plus,
+  FlaskConical,
 } from "lucide-react";
 import { checkHealth, getAgents, getApprovals } from "@/lib/api";
 import { ThemeToggle } from "./theme-toggle";
@@ -90,6 +91,12 @@ export function Navbar() {
       counter: pendingCount !== null && pendingCount > 0 ? String(pendingCount) : undefined,
       isAlertCounter: pendingCount !== null && pendingCount > 0,
       match: (p: string) => p.startsWith("/governance"),
+    },
+    {
+      label: "Evals",
+      href: "/evals",
+      icon: FlaskConical,
+      match: (p: string) => p.startsWith("/evals"),
     },
   ];
 

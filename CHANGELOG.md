@@ -9,7 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Phase 4 — Evals & Confidence
 
-#### Added
+- `apps/ui/src/app/evals/page.tsx`: Evaluations & Verifiable Confidence control plane hub:
+  - Subnav tabs for `suites`, `runs`, `regression`, and `confidence`.
+  - Summary KPI cards (Registered Suites, Total Executions, Average Pass Rate, Active Regressions).
+  - Empty, loading, and error states with manual data refresh and execution workflow.
+- `apps/ui/src/components/evals/`:
+  - `eval-suite-runner.tsx`: Suite runner and catalog with test case counts, evaluator breakdown, and modal execution trigger supporting version snapshot pinning.
+  - `eval-run-detail.tsx`: Granular test execution explorer with pass rate progress gauge, latency metrics, searchable assertions table with status filters, and assertion inspector modal.
+  - `eval-regression-view.tsx`: Version-over-version regression comparator displaying pass rate deltas, regression and improvement counters, and test case verdict breakdown.
+  - `confidence-sandbox.tsx`: Verifiable confidence & review-priority sandbox evaluating output payloads across multi-source verifiable signals (JSON schema, grounding context, eval benchmarks, approval history).
+- `apps/ui/src/components/badges.tsx`: Semantic badge components `ReviewPriorityBadge` (`low`, `medium`, `high`, `critical`) and `RegressionStatusBadge` (`improved`, `regressed`, `added`, `removed`, `unchanged`).
+- `apps/ui/src/components/navbar.tsx`: Top-level `Evals` navigation link with `FlaskConical` icon.
+- `apps/ui/src/__tests__/evals.test.tsx`: Comprehensive unit tests for eval badges, runner, assertion inspector, regression comparator, and confidence sandbox.
+- `docs/plans/phase-4-task-4-evals-and-confidence-ui.md`: Implementation plan and exit verification record.
 - `apps/api/src/governance/confidence/`: Verifiable review-priority and confidence engine:
   - `engine.py`: `ReviewPriorityEngine` calculating multi-source verifiable confidence signals (JSON schema conformity, grounding keyword/citation overlap, offline eval benchmark pass rate, historical human approval rate) and review-priority classifications (`low`, `medium`, `high`, `critical`).
   - `schemas.py`: Pydantic models `ConfidenceSignal`, `ConfidenceEvaluationRequest`, and `ReviewPriorityOutcome`.

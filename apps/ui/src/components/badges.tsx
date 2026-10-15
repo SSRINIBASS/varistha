@@ -258,3 +258,122 @@ export function KillSwitchBadge({ tripped, className = "" }: KillSwitchBadgeProp
     </span>
   );
 }
+
+interface ReviewPriorityBadgeProps {
+  priority: "low" | "medium" | "high" | "critical" | string;
+  className?: string;
+}
+
+export function ReviewPriorityBadge({
+  priority,
+  className = "",
+}: ReviewPriorityBadgeProps) {
+  const norm = priority.toLowerCase();
+  switch (norm) {
+    case "low":
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 ${className}`}
+        >
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+          <span>Low Priority</span>
+        </span>
+      );
+    case "medium":
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/30 ${className}`}
+        >
+          <Clock className="w-3.5 h-3.5 text-blue-500" />
+          <span>Medium Priority</span>
+        </span>
+      );
+    case "high":
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 ${className}`}
+        >
+          <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+          <span>High Priority</span>
+        </span>
+      );
+    case "critical":
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 ${className}`}
+        >
+          <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+          <span>Critical</span>
+        </span>
+      );
+    default:
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border ${className}`}
+        >
+          <span>{priority}</span>
+        </span>
+      );
+  }
+}
+
+interface RegressionStatusBadgeProps {
+  status: "improved" | "regressed" | "unchanged" | "added" | "removed" | string;
+  className?: string;
+}
+
+export function RegressionStatusBadge({
+  status,
+  className = "",
+}: RegressionStatusBadgeProps) {
+  const norm = status.toLowerCase();
+  switch (norm) {
+    case "improved":
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 ${className}`}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+          <span>Improved</span>
+        </span>
+      );
+    case "regressed":
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 ${className}`}
+        >
+          <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+          <span>Regressed</span>
+        </span>
+      );
+    case "added":
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/30 ${className}`}
+        >
+          <Layers className="w-3.5 h-3.5 text-blue-500" />
+          <span>Added</span>
+        </span>
+      );
+    case "removed":
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border border-zinc-500/20 ${className}`}
+        >
+          <Ban className="w-3.5 h-3.5 text-zinc-500" />
+          <span>Removed</span>
+        </span>
+      );
+    case "unchanged":
+    default:
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border ${className}`}
+        >
+          <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground" />
+          <span>Unchanged</span>
+        </span>
+      );
+  }
+}
+
