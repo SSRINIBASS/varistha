@@ -1,0 +1,112 @@
+name: lead-qualifier-benchmark
+description: Comprehensive evaluation benchmark for the Inbound Lead Qualifier & Scorer agent.
+min_pass_rate: 0.85
+evaluators:
+  - name: routing-destination-check
+    type: contains
+    threshold: 1.0
+  - name: json-schema-validator
+    type: json-schema
+    config:
+      schema:
+        type: object
+        properties:
+          email: { type: string }
+          qualification_score: { type: integer, minimum: 0, maximum: 100 }
+          intent_category:
+            type: string
+            enum: [
+              "DEMO_REQUEST",
+              "TECHNICAL_EVALUATION",
+              "PRICING_INQUIRY",
+              "PARTNERSHIP",
+              "JOB_SEEKER_STUDENT",
+              "SPAM_SOLICITATION"
+            ]
+          routing_destination:
+            type: string
+            enum: [
+              "AE_PRIORITY_DEMO",
+              "SDR_DISCOVERY_CALL",
+              "SELF_SERVE_PRODUCT",
+              "COMMUNITY_TIER",
+              "DISQUALIFIED"
+            ]
+        required: ["email", "qualification_score", "intent_category", "routing_destination"]
+
+cases:
+  - id: case-enterprise-cto-demo
+    name: Enterprise CTO Urgent Demo Request
+    input:
+      name: Elena Rostova
+      email: elena.rostova@finops.corp
+      company: FinOps Global
+      job_title: Chief Technology Officer
+      message: |
+        We are running 25 autonomous AI agents across our European branches and need an on-premise
+        control plane with strict OpenTelemetry observability and deterministic guardrails.
+        Evaluating solutions this month. Need an architectural demo and security review.
+    expected:
+      routing_destination: AE_PRIORITY_DEMO
+      intent_category: DEMO_REQUEST
+    evaluator: routing-destination-check
+
+  - id: case-ai-lead-discovery
+    name: AI Tech Lead Exploring Agent Ops
+    input:
+      name: Liam Chen
+      email: liam@datacraft.ai
+      company: DataCraft AI
+      job_title: AI Tech Lead
+      message: |
+        We build automated research agents for life sciences. Experiencing intermittent hallucinations
+        and need lifecycle stage gates (staging vs prod). Looking to set up a pilot over the next 60 days.
+    expected:
+      routing_destination: SDR_DISCOVERY_CALL
+      intent_category: TECHNICAL_EVALUATION
+    evaluator: routing-destination-check
+
+  - id: case-solo-developer-selfserve
+    name: Solo Developer Exploring Open Source
+    input:
+      name: Dave Miller
+      email: dave.m@devhobby.io
+      company: Solo Project
+      job_title: Indie Developer
+      message: |
+        Hey, love the repo! Want to test self-hosting docker compose on my home server
+        to monitor my personal Claude bot. Any quickstart tips?
+    expected:
+      routing_destination: SELF_SERVE_PRODUCT
+      intent_category: TECHNICAL_EVALUATION
+    evaluator: routing-destination-check
+
+  - id: case-student-thesis
+    name: University Student Academic Query
+    input:
+      name: Kevin Zhang
+      email: kzhang@mit.edu
+      company: MIT AI Lab
+      job_title: Undergraduate Student
+      message: |
+        Hi, I'm writing a senior thesis on agentic governance frameworks.
+        Can someone jump on a 30-min Zoom call to answer questions about your database schema?
+    expected:
+      routing_destination: DISQUALIFIED
+      intent_category: JOB_SEEKER_STUDENT
+    evaluator: routing-destination-check
+
+  - id: case-seo-agency-spam
+    name: Outbound Agency Sales Pitch
+    input:
+      name: Rick Pitchman
+      email: fastranking2026@gmail.com
+      company: Unknown
+      job_title: Business Development
+      message: |
+        Guaranteed 1st page Google rankings for your website! We offer 500 high DA backlinks
+        for only $299. Reply back if interested in skyrocketing your traffic.
+    expected:
+      routing_destination: DISQUALIFIED
+      intent_category: SPAM_SOLICITATION
+    evaluator: routing-destination-check
