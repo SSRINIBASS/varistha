@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from diff import ChangeType, DiffEntry, SpecDiff, diff_specs
 from exceptions import SpecValidationError
 from models import (
     AgentMetadata,
@@ -22,12 +23,16 @@ __all__ = [
     "AgentSpec",
     "AgentSpecBody",
     "BudgetConfig",
+    "ChangeType",
+    "DiffEntry",
     "EvalConfig",
     "GuardrailsConfig",
     "ModelConfig",
     "PluginRef",
+    "SpecDiff",
     "SpecValidationError",
     "TriggerConfig",
+    "diff_specs",
     "generate_json_schema",
     "validate_spec",
     "validate_spec_yaml",

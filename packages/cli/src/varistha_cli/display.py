@@ -156,3 +156,100 @@ def print_run_summary(run_data: dict[str, Any]) -> None:
                 box=ROUNDED,
             )
         )
+
+
+def print_spec_diff(diff_data: dict[str, Any]) -> None:
+    """Print structured spec diff with breaking change highlights."""
+    from_ver = diff_data.get("from_version") or "base"
+    to_ver = diff_data.get("to_version") or "target"
+    has_changes = diff_data.get("has_changes", False)
+    has_breaking = diff_data.get("has_breaking_changes", False)
+    summary = diff_data.get("summary", {})
+    entries = diff_data.get("entries", [])
+
+    if not has_changes:
+        msg = f"[bold green]No differences detected between v{from_ver} and v{to_ver}.[/bold green]"
+        console.print(
+            Panel(
+                msg,
+                title="[bold green]Spec Diff[/bold green]",
+                border_style="green",
+                box=ROUNDED,
+            )
+        )
+        return
+
+    # Header summary
+    total = summary.get("total", len(entries))
+    added = summary.get("added", 0)
+    removed = summary.get("removed", 0)
+    modified = summary.get("modified", 0)
+    breaking = summary.get("breaking", 0)
+
+    summary_line = (
+        f"Total Changes: [bold]{total}[/bold] | "
+        f"[green]+{added} added[/green] | "
+        f"[red]-{removed} removed[/red] | "
+        f"[yellow]~{modified} modified[/yellow] | "
+        f"[bold red]!{breaking} breaking[/bold red]"
+    )
+
+    console.print(
+        Panel(
+            summary_line,
+            title=f"[bold cyan]Spec Diff: v{from_ver} -> v{to_ver}[/bold cyan]",
+            border_style="red" if has_breaking else "cyan",
+            box=ROUNDED,
+        )
+    )
+
+    if has_breaking:
+        breaking_items: list[str] = []
+        for e in diff_data.get("breaking_entries", []):
+            reason = e.get("breaking_reason") or e.get("description")
+            breaking_items.append(f"  - [bold red]{e['field']}[/bold red]: {reason}")
+        breaking_details = "\n".join(breaking_items)
+        alert_body = (
+            f"[bold red]WARNING: This diff introduces {breaking} BREAKING change(s)![/bold red]\n\n"
+            f"{breaking_details}"
+        )
+        console.print(
+            Panel(
+                alert_body,
+                title="[bold red]Breaking Changes Alert[/bold red]",
+                border_style="red",
+                box=ROUNDED,
+            )
+        )
+
+    # Table of all changes
+    table = Table(box=ROUNDED, show_header=True, header_style="bold")
+    table.add_column("Field", style="cyan")
+    table.add_column("Type", justify="center")
+    table.add_column("Old Value", style="dim")
+    table.add_column("New Value")
+    table.add_column("Impact", justify="center")
+
+    for e in entries:
+        ctype = e.get("change_type", "modified").lower()
+        if ctype == "added":
+            type_badge = "[bold green]+ ADDED[/bold green]"
+        elif ctype == "removed":
+            type_badge = "[bold red]- REMOVED[/bold red]"
+        else:
+            type_badge = "[bold yellow]~ MODIFIED[/bold yellow]"
+
+        is_brk = e.get("is_breaking", False)
+        impact_badge = "[bold red]BREAKING[/bold red]" if is_brk else "[green]Safe[/green]"
+
+        old_val = str(e.get("old_value")) if e.get("old_value") is not None else "-"
+        new_val = str(e.get("new_value")) if e.get("new_value") is not None else "-"
+
+        if len(old_val) > 40:
+            old_val = old_val[:37] + "..."
+        if len(new_val) > 40:
+            new_val = new_val[:37] + "..."
+
+        table.add_row(e.get("field", ""), type_badge, old_val, new_val, impact_badge)
+
+    console.print(table)

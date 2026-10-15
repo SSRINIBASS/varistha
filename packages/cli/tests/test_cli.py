@@ -126,6 +126,8 @@ def test_client_methods_with_mock_transport() -> None:
 
     def handler(request: httpx.Request) -> httpx.Response:
         url = str(request.url)
+        if "/diff" in url:
+            return httpx.Response(200, json={"has_changes": True, "entries": []})
         if url.endswith("/health"):
             return httpx.Response(200, json={"status": "healthy"})
         if "/versions" in url and request.method == "POST":
@@ -168,6 +170,12 @@ def test_client_methods_with_mock_transport() -> None:
 
     run_detail = client.get_run("run-1")
     assert run_detail["status"] == "completed"
+
+    diff_ver = client.get_version_diff("found", "0.1.0", "0.2.0")
+    assert diff_ver["has_changes"] is True
+
+    diff_preview = client.preview_spec_diff("found", {"spec": {}}, base_version="0.1.0")
+    assert diff_preview["has_changes"] is True
 
 
 def test_client_handles_transport_errors() -> None:

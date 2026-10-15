@@ -8,6 +8,7 @@ import click
 
 from varistha_cli import __version__
 from varistha_cli.commands.apply_cmd import apply_command
+from varistha_cli.commands.diff_cmd import diff_command
 from varistha_cli.commands.init_cmd import init_command
 from varistha_cli.commands.run_cmd import run_command
 
@@ -30,6 +31,8 @@ def cli(ctx: click.Context, api_url: str) -> None:
 cli.add_command(init_command)
 cli.add_command(apply_command)
 cli.add_command(run_command)
+cli.add_command(diff_command)
+
 
 main = cli
 

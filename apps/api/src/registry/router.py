@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from registry.diff_service import diff_agent_versions, preview_agent_diff
 from registry.schemas import (
     AgentDetailResponse,
     AgentListResponse,
@@ -15,11 +16,14 @@ from registry.schemas import (
     GateEvaluationResponse,
     PromoteAgentRequest,
     PromoteAgentResponse,
+    SpecDiffRequest,
+    SpecDiffResponse,
     StageTransitionResponse,
 )
 from registry.service import (
     DuplicateVersionError,
     GateCheckFailedError,
+    VersionNotFoundError,
     create_or_update_agent,
     evaluate_gates_for_agent,
     get_stage_history,
@@ -438,3 +442,72 @@ async def preview_gates_endpoint(
         ],
         error_message=gate_result.error_message,
     )
+
+
+@router.get(
+    "/{id_or_name}/versions/{v1}/diff/{v2}",
+    response_model=SpecDiffResponse,
+    summary="Diff two published versions of an agent",
+)
+async def diff_versions_endpoint(
+    id_or_name: str,
+    v1: str,
+    v2: str,
+    session: DbSession,
+) -> SpecDiffResponse:
+    """Compare two immutable published versions of an agent and detect breaking changes."""
+    agent = await resolve_agent(session, id_or_name)
+    if agent is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent '{id_or_name}' not found",
+        )
+
+    try:
+        diff = await diff_agent_versions(session, agent, v1, v2)
+    except VersionNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+
+    return SpecDiffResponse.model_validate(diff.model_dump())
+
+
+@router.post(
+    "/{id_or_name}/diff",
+    response_model=SpecDiffResponse,
+    summary="Preview diff between candidate spec and existing version",
+)
+async def preview_spec_diff_endpoint(
+    id_or_name: str,
+    request: SpecDiffRequest,
+    session: DbSession,
+) -> SpecDiffResponse:
+    """Preview field-level changes and breaking change impact for a candidate spec."""
+    agent = await resolve_agent(session, id_or_name)
+    if agent is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent '{id_or_name}' not found",
+        )
+
+    try:
+        diff = await preview_agent_diff(
+            session=session,
+            agent=agent,
+            candidate_spec=request.spec,
+            base_version_str=request.base_version,
+        )
+    except SpecValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail={"detail": "Agent spec validation failed", "errors": exc.errors},
+        ) from exc
+    except VersionNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+
+    return SpecDiffResponse.model_validate(diff.model_dump())

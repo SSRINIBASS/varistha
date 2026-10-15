@@ -14,8 +14,13 @@ Exports:
     validate_spec       - Validate a raw dict -> AgentSpec
     validate_spec_yaml  - Validate a YAML string -> AgentSpec
     generate_json_schema - Return JSON Schema dict for AgentSpec
+    diff_specs          - Compare two specs and detect breaking changes
+    SpecDiff            - Structured diff summary model
+    DiffEntry           - Detailed field-level diff entry model
+    ChangeType          - Added, removed, or modified change type enum
 """
 
+from diff import ChangeType, DiffEntry, SpecDiff, diff_specs
 from exceptions import SpecValidationError
 from models import (
     AgentMetadata,
@@ -36,12 +41,16 @@ __all__ = [
     "AgentSpec",
     "AgentSpecBody",
     "BudgetConfig",
+    "ChangeType",
+    "DiffEntry",
     "EvalConfig",
     "GuardrailsConfig",
     "ModelConfig",
     "PluginRef",
+    "SpecDiff",
     "SpecValidationError",
     "TriggerConfig",
+    "diff_specs",
     "generate_json_schema",
     "validate_spec",
     "validate_spec_yaml",

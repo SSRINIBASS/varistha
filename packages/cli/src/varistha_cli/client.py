@@ -163,3 +163,56 @@ class VaristhaClient:
             ) from err
         except httpx.RequestError as err:
             raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def get_version_diff(
+        self,
+        id_or_name: str,
+        v1: str,
+        v2: str,
+    ) -> dict[str, Any]:
+        """Fetch structured diff between two published versions of an agent."""
+        try:
+            with self.client() as http_client:
+                resp = http_client.get(f"/api/v1/agents/{id_or_name}/versions/{v1}/diff/{v2}")
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to diff versions: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def preview_spec_diff(
+        self,
+        id_or_name: str,
+        spec: dict[str, Any],
+        base_version: str | None = None,
+    ) -> dict[str, Any]:
+        """Preview diff between a candidate spec and existing agent version."""
+        payload: dict[str, Any] = {"spec": spec}
+        if base_version:
+            payload["base_version"] = base_version
+        try:
+            with self.client() as http_client:
+                resp = http_client.post(f"/api/v1/agents/{id_or_name}/diff", json=payload)
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to preview diff: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err

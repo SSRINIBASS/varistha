@@ -134,3 +134,43 @@ class PromoteAgentResponse(BaseModel):
     agent: AgentDetailResponse
     transition: StageTransitionResponse
     evaluation: GateEvaluationResponse
+
+
+class SpecDiffRequest(BaseModel):
+    """Request payload to preview a spec diff against an existing version."""
+
+    spec: dict[str, Any] = Field(description="Candidate AgentSpec dictionary to diff.")
+    base_version: str | None = Field(
+        default=None,
+        description="Base version to compare against. If None, uses current active version.",
+    )
+
+
+class DiffEntryResponse(BaseModel):
+    """A single field diff result."""
+
+    field: str = Field(description="Dotted path of the changed field.")
+    change_type: str = Field(description="added, removed, or modified.")
+    old_value: Any = Field(default=None, description="Previous value or None.")
+    new_value: Any = Field(default=None, description="New value or None.")
+    is_breaking: bool = Field(default=False, description="Whether this change is breaking.")
+    breaking_reason: str | None = Field(
+        default=None, description="Explanation if this change is breaking."
+    )
+    description: str = Field(description="Human-readable description of the change.")
+
+
+class SpecDiffResponse(BaseModel):
+    """Structured response comparing two agent specifications."""
+
+    from_version: str | None = Field(default=None, description="Base version string.")
+    to_version: str | None = Field(default=None, description="Target version string.")
+    has_changes: bool = Field(description="True if any difference was detected.")
+    has_breaking_changes: bool = Field(description="True if any breaking difference exists.")
+    summary: dict[str, int] = Field(
+        description="Counts of total, added, removed, modified, breaking."
+    )
+    entries: list[DiffEntryResponse] = Field(description="All detected diff entries.")
+    breaking_entries: list[DiffEntryResponse] = Field(
+        description="Filtered list of breaking diff entries."
+    )

@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Phase 2 — Registry and Lifecycle
 
 #### Added
+- `packages/spec/src/diff.py`: Pure deterministic Spec Diffing Engine for comparing AgentSpec versions
+  - Detects field-level deltas across metadata, role, models, instructions, autonomy, plugins, guardrails, budgets, triggers, and evals
+  - Classifies changes as breaking vs non-breaking with explicit explanatory reasons (autonomy escalation, guardrail removal, primary model changes, budget reductions, plugin removal)
+  - 100% test coverage with 21 unit tests in `packages/spec/tests/test_diff.py`
+- `apps/api/src/registry/diff_service.py` & `router.py`: REST endpoints for spec version diffing
+  - `GET /api/v1/agents/{id_or_name}/versions/{v1}/diff/{v2}`: Compares two published immutable versions
+  - `POST /api/v1/agents/{id_or_name}/diff`: Previews candidate spec diff and breaking change warnings against current active or target base version
+- `packages/cli`: `varistha diff` CLI command
+  - Compares published versions (`varistha diff <agent> <v1> <v2>`) or local files (`varistha diff -f agent.yaml`)
+  - Supports `--strict` gate to exit with non-zero code on breaking changes
+  - Rich terminal formatting with color badges and breaking change alerts
+- `docs/adr/0011-spec-diffing-engine-and-breaking-changes.md`: ADR documenting spec diffing architecture and breaking change taxonomy
 - `apps/api/src/shared/db/models/stage_transition.py`: `StageTransition` model for immutable audit trail of agent lifecycle changes
 - `apps/api/alembic/versions/0002_stage_transitions.py`: Alembic migration creating `stage_transitions` table with cascade delete and foreign key indexing
 - `apps/api/src/registry/gates.py`: Pure domain gate evaluation engine for lifecycle transitions (`Draft` → `Prototype` → `Staging` → `Production` → `Deprecated` → `Retired`)
@@ -20,7 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `GET /api/v1/agents/{id_or_name}/history`: Query chronological stage transition audit history
   - `GET /api/v1/agents/{id_or_name}/gates/{target_stage}`: Dry-run preview endpoint for live UI checklists
 - `docs/adr/0010-stage-promotion-gates-and-audit-log.md`: Architecture decision record for stage transitions and gates
-- 31 unit and integration tests with 100% service layer coverage and 96% overall monorepo coverage
+- Full suite passing: 214 tests across monorepo with 96% overall test coverage
+
 
 ### Phase 1 — Walking Skeleton (Week 2-3)
 
