@@ -56,6 +56,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `packages/cli`: CLI inspection and testing commands:
   - `varistha policies list`: Formatted table of registered guardrails.
   - `varistha policies test <policy_name> -i <text>`: Interactively tests policies and outputs detailed outcomes and alerts.
+- `apps/ui/src/app/governance/page.tsx`: Centralized Governance Control Room with real-time stats (Global Status, Pending Approvals, Halted Agents) and three-way subnavigation.
+- `apps/ui/src/components/governance/approvals-inbox.tsx`: Human-in-the-Loop Approvals Inbox with status filtering, detail drawer, and one-click actions: Approve, Reject (with required rationale), and Edit & Approve.
+- `apps/ui/src/components/governance/payload-diff-viewer.tsx`: GitHub-style unified diff viewer displaying green additions and red deletions for parameter changes.
+- `apps/ui/src/components/governance/budgets-dashboard.tsx`: Budgets & Circuit Breakers board featuring platform Global Emergency Stop toggle, spend gauges against caps, and agent kill/resume controls.
+- `apps/ui/src/components/governance/guardrails-explorer.tsx`: Guardrails Explorer with policy catalog and interactive live testing sandbox.
+- `apps/ui/src/components/navbar.tsx`: Updated global navigation with Governance link, ShieldAlert icon, and dynamic pending approvals badge counter pill.
+- `apps/ui/src/__tests__/governance.test.tsx`: Vitest suite covering inbox rendering, approvals resolution, diff viewer, budget progress, kill switch confirmation, and guardrail tester (32/32 tests passing).
+- `docs/adr/0016-governance-dashboard-ui-and-approvals.md`: Architecture Decision Record for Governance UI and Human-in-the-Loop control plane.
+- `docs/plans/phase-3-task-4-governance-ui.md`: Implementation plan and exit criteria verification for Phase 3 Task 4.
 - `docs/adr/0015-guardrail-policy-engine-and-middleware.md`: ADR documenting guardrail policy engine, built-ins, and outside-the-model middleware.
 - `docs/adr/0014-budget-tracking-and-circuit-breakers.md`: Architecture Decision Record for budget tracking, rate limits, and emergency kill switches.
 - `docs/plans/phase-3-task-2-budgets-and-kill-switch.md`: Implementation plan and exit criteria verification for Phase 3 Task 2.

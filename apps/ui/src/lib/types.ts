@@ -170,3 +170,85 @@ export interface SpecDiff {
   breaking_entries: DiffEntry[];
 }
 
+// --- Governance: Approvals, Budgets, Policies ---
+
+export type ApprovalStatus = "pending" | "approved" | "rejected" | "edited";
+
+export interface ApprovalItem {
+  id: string;
+  run_id: string;
+  agent_id: string;
+  agent_name?: string;
+  status: ApprovalStatus;
+  action_type: string;
+  tool_name?: string | null;
+  description: string;
+  proposed_payload: Record<string, unknown>;
+  approved_payload?: Record<string, unknown> | null;
+  diff?: Record<string, unknown> | null;
+  reviewer?: string | null;
+  review_notes?: string | null;
+  created_at: string;
+  resolved_at?: string | null;
+}
+
+export interface ApprovalsListResponse {
+  items: ApprovalItem[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface ApprovalResolveRequest {
+  action: "approve" | "reject" | "edit";
+  modified_payload?: Record<string, unknown>;
+  reviewer?: string;
+  notes?: string;
+}
+
+export interface AgentBudgetStatus {
+  agent_id: string;
+  agent_name: string;
+  daily_spend_usd: number;
+  daily_budget_usd: number | null;
+  remaining_daily_budget_usd: number | null;
+  max_usd_per_run: number | null;
+  is_active: boolean;
+  kill_switch_tripped: boolean;
+  kill_switch_reason?: string | null;
+  kill_switch_tripped_at?: string | null;
+}
+
+export interface GlobalKillSwitchStatus {
+  enabled: boolean;
+  reason?: string | null;
+  tripped_at?: string | null;
+  operator?: string | null;
+}
+
+export interface PolicyInfo {
+  name: string;
+  description: string;
+  supported_hooks: string[];
+}
+
+export interface PolicyListResponse {
+  policies: PolicyInfo[];
+  total: number;
+}
+
+export interface PolicyTestRequest {
+  policy_name: string;
+  payload: unknown;
+  hook?: string;
+}
+
+export interface PolicyTestResponse {
+  policy_name: string;
+  passed: boolean;
+  action: string;
+  modified_data?: unknown;
+  violations: string[];
+  metadata: Record<string, unknown>;
+}
+

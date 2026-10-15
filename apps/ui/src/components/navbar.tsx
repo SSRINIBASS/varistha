@@ -14,16 +14,18 @@ import {
   Bot,
   Layers,
   Activity,
+  ShieldAlert,
   Search,
   Plus,
 } from "lucide-react";
-import { checkHealth, getAgents } from "@/lib/api";
+import { checkHealth, getAgents, getApprovals } from "@/lib/api";
 import { ThemeToggle } from "./theme-toggle";
 
 export function Navbar() {
   const pathname = usePathname();
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
   const [agentCount, setAgentCount] = useState<number | null>(null);
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -43,6 +45,16 @@ export function Navbar() {
       })
       .catch(() => {
         // Fallback silently if agents can't be counted yet
+      });
+
+    getApprovals({ status: "pending" })
+      .then((res) => {
+        if (mounted && res?.total !== undefined) {
+          setPendingCount(res.total);
+        }
+      })
+      .catch(() => {
+        // Fallback silently
       });
 
     return () => {
@@ -70,6 +82,14 @@ export function Navbar() {
       href: "/runs",
       icon: Activity,
       match: (p: string) => p.startsWith("/runs"),
+    },
+    {
+      label: "Governance",
+      href: "/governance",
+      icon: ShieldAlert,
+      counter: pendingCount !== null && pendingCount > 0 ? String(pendingCount) : undefined,
+      isAlertCounter: pendingCount !== null && pendingCount > 0,
+      match: (p: string) => p.startsWith("/governance"),
     },
   ];
 
@@ -225,7 +245,9 @@ export function Navbar() {
                 {item.counter && (
                   <span
                     className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium ${
-                      isActive
+                      item.isAlertCounter
+                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-semibold"
+                        : isActive
                         ? "bg-secondary text-secondary-foreground border border-border"
                         : "bg-muted text-muted-foreground"
                     }`}

@@ -6,8 +6,15 @@ import type {
   AgentDetail,
   AgentListResponse,
   AgentVersion,
+  AgentBudgetStatus,
+  ApprovalItem,
+  ApprovalsListResponse,
+  ApprovalResolveRequest,
   GateEvaluation,
+  GlobalKillSwitchStatus,
   HealthStatus,
+  PolicyListResponse,
+  PolicyTestResponse,
   PromoteAgentRequest,
   PromoteAgentResponse,
   Run,
@@ -204,5 +211,94 @@ export async function getVersionDiff(
   return request<SpecDiff>(
     `/api/v1/agents/${encodeURIComponent(idOrName)}/versions/${encodeURIComponent(v1)}/diff/${encodeURIComponent(v2)}`
   );
+}
+
+// --- Governance: Approvals, Budgets, Policies ---
+
+export async function getApprovals(params?: {
+  status?: string;
+  agentId?: string;
+  runId?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<ApprovalsListResponse> {
+  const q = new URLSearchParams();
+  if (params?.status) q.set("status", params.status);
+  if (params?.agentId) q.set("agent_id", params.agentId);
+  if (params?.runId) q.set("run_id", params.runId);
+  if (params?.limit !== undefined) q.set("limit", String(params.limit));
+  if (params?.offset !== undefined) q.set("offset", String(params.offset));
+
+  const query = q.toString() ? `?${q.toString()}` : "";
+  return request<ApprovalsListResponse>(`/api/v1/approvals${query}`);
+}
+
+export async function getApproval(id: string): Promise<ApprovalItem> {
+  return request<ApprovalItem>(`/api/v1/approvals/${encodeURIComponent(id)}`);
+}
+
+export async function resolveApproval(
+  id: string,
+  payload: ApprovalResolveRequest
+): Promise<ApprovalItem> {
+  return request<ApprovalItem>(`/api/v1/approvals/${encodeURIComponent(id)}/resolve`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getAgentBudget(idOrName: string): Promise<AgentBudgetStatus> {
+  return request<AgentBudgetStatus>(`/api/v1/agents/${encodeURIComponent(idOrName)}/budget`);
+}
+
+export async function tripAgentKillSwitch(
+  idOrName: string,
+  reason?: string,
+  operator?: string
+): Promise<AgentBudgetStatus> {
+  return request<AgentBudgetStatus>(`/api/v1/agents/${encodeURIComponent(idOrName)}/kill`, {
+    method: "POST",
+    body: JSON.stringify({ reason: reason || "Emergency stop", operator: operator || "operator" }),
+  });
+}
+
+export async function resumeAgent(
+  idOrName: string,
+  operator?: string
+): Promise<AgentBudgetStatus> {
+  return request<AgentBudgetStatus>(`/api/v1/agents/${encodeURIComponent(idOrName)}/resume`, {
+    method: "POST",
+    body: JSON.stringify({ operator: operator || "operator" }),
+  });
+}
+
+export async function getGlobalKillSwitch(): Promise<GlobalKillSwitchStatus> {
+  return request<GlobalKillSwitchStatus>("/api/v1/system/kill-switch");
+}
+
+export async function setGlobalKillSwitch(
+  enabled: boolean,
+  reason?: string,
+  operator?: string
+): Promise<GlobalKillSwitchStatus> {
+  return request<GlobalKillSwitchStatus>("/api/v1/system/kill-switch", {
+    method: "POST",
+    body: JSON.stringify({ enabled, reason: reason || null, operator: operator || "operator" }),
+  });
+}
+
+export async function getPolicies(): Promise<PolicyListResponse> {
+  return request<PolicyListResponse>("/api/v1/policies");
+}
+
+export async function testPolicy(
+  policyName: string,
+  payload: unknown,
+  hook: string = "input"
+): Promise<PolicyTestResponse> {
+  return request<PolicyTestResponse>("/api/v1/policies/test", {
+    method: "POST",
+    body: JSON.stringify({ policy_name: policyName, payload, hook }),
+  });
 }
 
