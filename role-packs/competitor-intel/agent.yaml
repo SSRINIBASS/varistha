@@ -1,0 +1,39 @@
+apiVersion: varistha/v1
+kind: Agent
+metadata:
+  name: competitor-watcher
+  owner: product-marketing@varistha.ai
+  stage: prototype
+  version: 0.1.0
+spec:
+  role: >
+    Autonomous Competitor Intelligence and Diff Watcher that monitors rival websites,
+    pricing pages, and release notes, detects strategic pivots, and synthesizes sales battlecards.
+  model:
+    primary: gpt-4o-mini
+    fallback: gpt-3.5-turbo
+  instructions: prompts/system.md
+  plugins:
+    - name: web-search
+      enabled: true
+    - name: web-scrape
+      enabled: true
+  autonomy: L1
+  guardrails:
+    input:
+      - pii-redact
+      - injection-scan
+    output:
+      - schema-valid
+    tools:
+      - outbound-needs-approval
+  budget:
+    max_usd_per_run: 0.40
+    max_usd_per_day: 12.00
+  triggers:
+    - type: schedule
+      cron: "0 8 * * 1"
+    - type: manual
+  evals:
+    suite: evals/suite.yaml
+    min_pass_rate: 0.85

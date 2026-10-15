@@ -1,0 +1,112 @@
+name: competitor-intel-benchmark
+description: Comprehensive evaluation benchmark for the Competitor Intelligence & Diff Watcher agent.
+min_pass_rate: 0.85
+evaluators:
+  - name: vector-level-check
+    type: contains
+    threshold: 1.0
+  - name: json-schema-validator
+    type: json-schema
+    config:
+      schema:
+        type: object
+        properties:
+          competitor_name: { type: string }
+          domain: { type: string }
+          intelligence_vector:
+            type: string
+            enum: [
+              "PRICING_CHANGE",
+              "FEATURE_RELEASE",
+              "POSITIONING_PIVOT",
+              "PARTNERSHIP_INTEGRATION",
+              "NOISE_IGNORE"
+            ]
+          threat_level:
+            type: string
+            enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+          battlecard:
+            type: object
+            properties:
+              where_we_win: { type: array }
+              trap_setting_questions: { type: array }
+              quick_rebuttal: { type: string }
+            required: ["where_we_win", "trap_setting_questions", "quick_rebuttal"]
+        required: ["competitor_name", "domain", "intelligence_vector", "threat_level", "battlecard"]
+
+cases:
+  - id: case-pricing-overhaul
+    name: Competitor Eliminates Free Tier and Hikes Prices
+    input:
+      competitor_name: AgentGrid
+      domain: agentgrid.io
+      previous_snapshot: |
+        Free Tier: Up to 10,000 trace spans/month with 3 agents.
+        Pro Tier: $49/month with unlimited agents.
+      current_snapshot: |
+        Starter Tier: $299/month base fee + $0.05 per 1,000 trace spans.
+        No free tier available. All self-hosted instances require Custom Enterprise License.
+    expected:
+      intelligence_vector: PRICING_CHANGE
+      threat_level: HIGH
+    evaluator: vector-level-check
+
+  - id: case-pivot-autonomous-workforce
+    name: Competitor Major Positioning Pivot to AI Employees
+    input:
+      competitor_name: WorkflowBot
+      domain: workflowbot.com
+      previous_snapshot: |
+        Headline: 'The No-Code Drag and Drop Robotic Process Automation (RPA) tool.'
+        Tagline: 'Automate Excel, web forms, and legacy data entry in minutes.'
+      current_snapshot: |
+        Headline: 'Autonomous AI Employees for High-Growth Startups.'
+        Tagline: 'Build, govern, and monitor self-operating AI SDRs and researchers.'
+    expected:
+      intelligence_vector: POSITIONING_PIVOT
+      threat_level: CRITICAL
+    evaluator: vector-level-check
+
+  - id: case-guardrails-feature-release
+    name: Competitor Releases Model Guardrail Middleware
+    input:
+      competitor_name: PromptShield
+      domain: promptshield.dev
+      previous_snapshot: |
+        PromptShield provides static API key scanning and regex PII redaction for Python.
+      current_snapshot: |
+        Announcing PromptShield Guardrails v2: Real-time prompt injection scanning
+        and JSON output schema enforcement for LLM agent function calls.
+    expected:
+      intelligence_vector: FEATURE_RELEASE
+      threat_level: MEDIUM
+    evaluator: vector-level-check
+
+  - id: case-aws-marketplace-partner
+    name: Competitor Launches AWS Marketplace Partnership
+    input:
+      competitor_name: CloudAgent
+      domain: cloudagent.com
+      previous_snapshot: |
+        CloudAgent is available via direct credit card signup on our website.
+      current_snapshot: |
+        CloudAgent is now an AWS Advanced Partner with 1-click deployment on AWS Marketplace
+        drawing down from existing enterprise AWS EDP commitments.
+    expected:
+      intelligence_vector: PARTNERSHIP_INTEGRATION
+      threat_level: MEDIUM
+    evaluator: vector-level-check
+
+  - id: case-footer-copyright-noise
+    name: Competitor Minor Cosmetic Footer Update
+    input:
+      competitor_name: StaticBot
+      domain: staticbot.org
+      previous_snapshot: |
+        <p>Copyright 2025 StaticBot Inc. All rights reserved.</p>
+      current_snapshot: |
+        <p>Copyright 2026 StaticBot Inc. All rights reserved.</p>
+    expected:
+      intelligence_vector: NOISE_IGNORE
+      threat_level: LOW
+    evaluator: vector-level-check
