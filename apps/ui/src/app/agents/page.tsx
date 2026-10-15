@@ -191,31 +191,47 @@ export default function AgentsPage() {
           }
         />
       ) : (
-        <div className="border border-border/80 rounded-xl bg-card overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
+        <div className="gh-box w-full shadow-2xs">
+          {/* GitHub Box Header */}
+          <div className="gh-box-header flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Bot className="w-4 h-4 text-muted-foreground" />
+              <span className="font-semibold text-foreground text-xs">
+                {filteredAgents.length} {filteredAgents.length === 1 ? "AI Employee" : "AI Employees"}
+              </span>
+            </div>
+
+            <div className="text-[11px] text-muted-foreground font-mono">
+              Auto-updating via Varistha Control Plane
+            </div>
+          </div>
+
+          <div className="overflow-x-auto w-full">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-border/80 bg-muted/40 font-medium text-muted-foreground">
-                  <th className="py-3 px-4">Agent Name</th>
-                  <th className="py-3 px-4">Stage</th>
-                  <th className="py-3 px-4">Autonomy</th>
-                  <th className="py-3 px-4">Version</th>
-                  <th className="py-3 px-4">Owner</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                <tr className="border-b border-border bg-muted/20 font-medium text-muted-foreground">
+                  <th className="py-2.5 px-4 font-semibold">Agent Name</th>
+                  <th className="py-2.5 px-4 font-semibold">Stage</th>
+                  <th className="py-2.5 px-4 font-semibold">Autonomy</th>
+                  <th className="py-2.5 px-4 font-semibold">Version</th>
+                  <th className="py-2.5 px-4 font-semibold">Owner</th>
+                  <th className="py-2.5 px-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/40">
+              <tbody className="divide-y divide-border/60">
                 {filteredAgents.map((agent) => (
                   <tr
                     key={agent.id}
                     className="hover:bg-muted/30 transition-colors group"
                   >
                     <td className="py-3 px-4">
-                      <div className="font-semibold text-foreground text-sm">
-                        {agent.name}
+                      <div className="font-semibold text-foreground text-sm hover:text-accent-foreground transition-colors">
+                        <Link href={`/agents/${agent.id}`}>
+                          {agent.name}
+                        </Link>
                       </div>
                       {agent.description && (
-                        <div className="text-muted-foreground text-[11px] line-clamp-1 max-w-md mt-0.5">
+                        <div className="text-muted-foreground text-[11px] line-clamp-1 max-w-2xl mt-0.5">
                           {agent.description}
                         </div>
                       )}
@@ -229,14 +245,14 @@ export default function AgentsPage() {
                     <td className="py-3 px-4 font-mono text-muted-foreground">
                       v{agent.current_version}
                     </td>
-                    <td className="py-3 px-4 text-muted-foreground">
+                    <td className="py-3 px-4 text-muted-foreground font-mono text-[11px]">
                       {agent.owner || "team@example.com"}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <Link
                           href={`/runs?agent_id=${agent.id}`}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border border-border bg-background text-foreground hover:bg-muted transition-colors"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border border-border bg-card text-foreground hover:bg-muted/80 transition-colors shadow-2xs"
                           title="View execution runs"
                         >
                           <Activity className="w-3.5 h-3.5 text-muted-foreground" />
@@ -245,10 +261,10 @@ export default function AgentsPage() {
                         <button
                           type="button"
                           onClick={() => setActiveModalAgent(agent)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-xs"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:brightness-110 transition-all cursor-pointer shadow-2xs"
                           title="Execute run"
                         >
-                          <Play className="w-3.5 h-3.5" />
+                          <Play className="w-3 h-3 fill-current" />
                           <span>Run</span>
                         </button>
                       </div>

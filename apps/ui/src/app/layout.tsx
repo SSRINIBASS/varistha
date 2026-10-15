@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/components/navbar";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,16 +29,39 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
-        <Suspense fallback={<div className="h-14 border-b border-border/80" />}>
-          <Navbar />
-        </Suspense>
-        <main className="flex-1 py-8 px-4 sm:px-6">
-          <div className="container mx-auto max-w-7xl">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var theme = localStorage.getItem('varistha-theme') || 'dark';
+                var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.setAttribute('data-color-mode', 'dark');
+                  document.documentElement.style.colorScheme = 'dark';
+                } else {
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.setAttribute('data-color-mode', 'light');
+                  document.documentElement.style.colorScheme = 'light';
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans transition-colors duration-150">
+        <ThemeProvider>
+          <Suspense fallback={<div className="h-14 border-b border-border" />}>
+            <Navbar />
+          </Suspense>
+          {/* Full-width responsive main container utilizing 100% of viewport width */}
+          <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-5">
             {children}
-          </div>
-        </main>
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );

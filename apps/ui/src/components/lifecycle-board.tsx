@@ -252,9 +252,9 @@ export function LifecycleBoard({ initialAgents }: LifecycleBoardProps) {
           ))}
         </div>
       ) : (
-        /* Kanban Columns Container with horizontal scroll */
-        <div className="overflow-x-auto pb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 min-w-[1300px]">
+        /* Kanban Columns Container: Fluid full-width on large screens with smooth horizontal scroll fallback */
+        <div className="w-full overflow-x-auto pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5 w-full min-w-[1050px] xl:min-w-0">
             {STAGE_COLUMNS.map((col) => {
               const stageAgents = agentsByStage[col.stage];
               const Icon = col.icon;
@@ -262,7 +262,7 @@ export function LifecycleBoard({ initialAgents }: LifecycleBoardProps) {
               return (
                 <div
                   key={col.stage}
-                  className="flex flex-col rounded-xl border border-border bg-card/60 shadow-xs min-h-[500px]"
+                  className="flex flex-col rounded-lg border border-border bg-card/60 shadow-2xs min-h-[550px]"
                 >
                   {/* Column Header */}
                   <div className="p-3.5 border-b border-border bg-muted/30 rounded-t-xl space-y-1.5">
