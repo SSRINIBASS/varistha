@@ -67,6 +67,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `apps/api/src/plugins/host.py`: Wired handlers and OpenAI/LiteLLM function calling definitions for `web_search`, `web_scrape`, and `crm_export`.
 - `docs/adr/0021-core-research-and-data-plugins.md`: Architecture Decision Record for core research and data plugins.
 - `docs/plans/phase-5-task-2-core-research-and-data-plugins.md`: Task plan and acceptance verification record.
+- `role-packs/lead-research/`: Lead Researcher & ICP Finder role pack:
+  - Canonical `agent.yaml` specification, system prompts, evaluation benchmark suite (`evals/suite.yaml`), and conformance test suite (`tests/test_lead_researcher.py`).
+  - 4-pillar ICP scoring matrix (Firmographic, Technographic, Intent/Growth Signals, Authority/Role fit).
+- `role-packs/lead-qualifier/`: Inbound Lead Qualifier & Scorer role pack:
+  - Canonical `agent.yaml` specification, system prompts, evaluation benchmark suite (`evals/suite.yaml`), and conformance test suite (`tests/test_lead_qualifier.py`).
+  - BANT & MEDDPICC qualification frameworks, intent classification, and tier routing matrix.
+- `role-packs/outbound-sdr/`: Outbound SDR & Multi-Channel Copywriting role pack:
+  - Canonical `agent.yaml` specification, system prompts, evaluation benchmark suite (`evals/suite.yaml`), and conformance test suite (`tests/test_outbound_sdr.py`).
+  - Lavender 90+ behavioral copywriting framework, 3-touch sequence, and mandatory approval gates.
+- `role-packs/competitor-intel/`: Competitor Intelligence & Diff Watcher role pack:
+  - Canonical `agent.yaml` specification, system prompts, evaluation benchmark suite (`evals/suite.yaml`), and conformance test suite (`tests/test_competitor_intel.py`).
+  - Multi-vector semantic diffing (`PRICING_CHANGE`, `FEATURE_RELEASE`, `POSITIONING_PIVOT`), threat severity ratings, and automated sales battlecards.
+- `role-packs/content-repurposer/`: Content Repurposer & Multi-Channel Distribution role pack:
+  - Canonical `agent.yaml` specification, system prompts, evaluation benchmark suite (`evals/suite.yaml`), and conformance test suite (`tests/test_content_repurposer.py`).
+  - 5-asset transformation framework (X thread, LinkedIn carousel, 2x standalone snippets, newsletter segment, 5-slide narrative deck).
+- `role-packs/support-responder/`: Tier-1 Support Responder & Technical Triage role pack:
+  - Canonical `agent.yaml` specification, system prompts, evaluation benchmark suite (`evals/suite.yaml`), and conformance test suite (`tests/test_support_responder.py`).
+  - Intent classification taxonomy, urgency SLA matrix, grounded technical troubleshooting, and escalation routing.
+- `role-packs/chief-of-staff/`: Executive Chief of Staff role pack:
+  - Canonical `agent.yaml` specification, system prompts, evaluation benchmark suite (`evals/suite.yaml`), and conformance test suite (`tests/test_chief_of_staff.py`).
+  - 4-pillar executive synthesis (Decision Records, Action Item Matrix, Functional Radar, CEO Morning Briefing).
 
 ### Phase 4 — Evals & Confidence
 
