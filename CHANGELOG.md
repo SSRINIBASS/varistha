@@ -37,6 +37,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Coverage & concurrency: Configured `greenlet` and `thread` concurrency in `pyproject.toml`
   - 13 integration tests (`test_router.py`) with 100% test coverage on `registry/` modules
 - `docs/adr/0004-registry-api-design.md` — ADR documenting registry API routes, immutability rules, and service layer architecture
+- `apps/api/src/runtime`: Runtime Protocol, LangGraph single-prompt adapter, and run execution endpoints
+  - `Runtime` protocol & dataclasses (`interface.py`): `@runtime_checkable Protocol`, `RunContext`, `RunResult`
+  - LangGraph adapter (`adapter.py`): `StateGraph` compiled single-prompt workflow invoking LiteLLM, calculating tokens and cost, with JSON parsing and exception handling
+  - Mock runtime (`mock.py`): Deterministic, offline execution engine supporting failure injection and approval-waiting states
+  - Schemas (`schemas.py`): `RunCreateRequest`, `RunResponse`, `RunListResponse`
+  - Service layer (`service.py`): `trigger_agent_run()`, `get_run()`, `list_runs_for_agent()` with lifecycle status updates (`running` -> `completed` / `failed`)
+  - Endpoints (`router.py`): `POST /api/v1/agents/{id_or_name}/runs`, `GET /api/v1/agents/{id_or_name}/runs`, `GET /api/v1/runs/{id}`
+  - 15 unit and integration tests with 97% overall coverage on `runtime/`
+- `docs/adr/0005-runtime-interface-and-langgraph-adapter.md` — ADR documenting runtime decoupling, LangGraph encapsulation, LiteLLM usage, and mock runtime strategy
+- New dependency: `langgraph>=0.2.0` (MIT, added to `varistha-api`)
 
 ### Phase 0 — Foundations (Week 1)
 

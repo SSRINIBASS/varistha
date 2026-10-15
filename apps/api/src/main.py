@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 from registry.router import router as registry_router
+from runtime.router import router as runtime_router
 
 app = FastAPI(
     title="Varistha Control Plane",
@@ -14,6 +15,7 @@ app = FastAPI(
 )
 
 app.include_router(registry_router)
+app.include_router(runtime_router)
 
 
 @app.get("/health", tags=["system"])
