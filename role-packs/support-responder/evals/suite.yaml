@@ -1,0 +1,141 @@
+name: support-responder-benchmark
+description: Comprehensive evaluation benchmark for the Tier-1 Support Responder and Triage agent.
+min_pass_rate: 0.85
+evaluators:
+  - name: triage-check
+    type: contains
+    threshold: 1.0
+  - name: json-schema-validator
+    type: json-schema
+    config:
+      schema:
+        type: object
+        properties:
+          ticket_id: { type: string }
+          customer_email: { type: string }
+          category:
+            type: string
+            enum: [
+              "AUTHENTICATION_ERROR",
+              "RATE_LIMIT_QUOTA",
+              "BUG_REPORT",
+              "BILLING_DISPUTE",
+              "HOW_TO_DOCS",
+              "FEATURE_REQUEST"
+            ]
+          urgency:
+            type: string
+            enum: ["CRITICAL_SLA", "HIGH", "NORMAL", "LOW"]
+          sentiment:
+            type: string
+            enum: ["FRUSTRATED", "NEUTRAL", "POSITIVE"]
+          summary: { type: string }
+          response_draft:
+            type: object
+            properties:
+              subject: { type: string }
+              greeting: { type: string }
+              body: { type: string }
+              sign_off: { type: string }
+            required: ["subject", "greeting", "body", "sign_off"]
+          escalation_required: { type: boolean }
+          escalation_target: { type: ["string", "null"] }
+          tags: { type: array, items: { type: string } }
+        required: [
+          "ticket_id",
+          "customer_email",
+          "category",
+          "urgency",
+          "sentiment",
+          "summary",
+          "response_draft",
+          "escalation_required",
+          "tags"
+        ]
+
+cases:
+  - id: case-critical-production-outage
+    name: Production Outage Agent DB Connection Exhaustion
+    input:
+      ticket_id: "TICK-8012"
+      customer_email: "cto@fintechflow.com"
+      subject: "URGENT: Entire production agent fleet is down with DB connection error!"
+      body: |
+        Our entire customer-facing agent pipeline has been down for 25 minutes! All worker tasks are failing with:
+        sqlalchemy.exc.TimeoutError: QueuePool limit of size 20 overflow 10 reached, connection timed out.
+        We are losing transactions every minute this is down! Escalate this immediately!
+    expected:
+      category: BUG_REPORT
+      urgency: CRITICAL_SLA
+      sentiment: FRUSTRATED
+      escalation_required: true
+      escalation_target: on-call-engineering
+    evaluator: triage-check
+
+  - id: case-auth-jwt-expiration
+    name: Customer Receiving 401 Unauthorized API Handshake
+    input:
+      ticket_id: "TICK-8013"
+      customer_email: "dev@cloudscale.io"
+      subject: "Getting 401 Unauthorized on agent deployment API"
+      body: |
+        Hi, we created a new agent spec and tried to POST to /api/v1/agents but keep getting:
+        HTTP 401 Unauthorized: Invalid or expired API token.
+        We generated the token yesterday in the Settings > API Keys tab. Is there an expiration time?
+    expected:
+      category: AUTHENTICATION_ERROR
+      urgency: NORMAL
+      sentiment: NEUTRAL
+      escalation_required: false
+    evaluator: triage-check
+
+  - id: case-billing-overage-dispute
+    name: Frustrated Customer Disputing Unexpected Token Overage
+    input:
+      ticket_id: "TICK-8014"
+      customer_email: "billing@growthlab.co"
+      subject: "Why was my card charged an extra $450 this morning??"
+      body: |
+        I just saw an unexpected debit of $450 on our corporate Amex from Varistha!
+        We signed up for the $99/mo plan. Nobody told us that background web-scrape plugins would charge extra for proxy usage.
+        I want this refunded immediately or I will have our bank issue a chargeback.
+    expected:
+      category: BILLING_DISPUTE
+      urgency: HIGH
+      sentiment: FRUSTRATED
+      escalation_required: true
+      escalation_target: billing-operations
+    evaluator: triage-check
+
+  - id: case-rate-limit-budget-breaker
+    name: Agent Run Paused Due to Daily Budget Circuit Breaker
+    input:
+      ticket_id: "TICK-8015"
+      customer_email: "ops@datalink.org"
+      subject: "Lead research agent stopped running mid-batch"
+      body: |
+        Hello support, our lead-research agent ran 120 leads fine, but then stopped with status:
+        CIRCUIT_BREAKER_TRIPPED: daily budget cap of $5.00 exceeded.
+        How do we increase this limit so the agent can finish the remaining 300 leads?
+    expected:
+      category: RATE_LIMIT_QUOTA
+      urgency: HIGH
+      sentiment: NEUTRAL
+      escalation_required: false
+    evaluator: triage-check
+
+  - id: case-feature-request-bedrock
+    name: Request for AWS Bedrock Anthropic Claude Model Support
+    input:
+      ticket_id: "TICK-8016"
+      customer_email: "sarah@enterprisegov.com"
+      subject: "Support for AWS Bedrock Claude 3.5 Sonnet in model spec"
+      body: |
+        Hi team! Loving Varistha so far. Our security policies require that all LLM calls go through our internal AWS Bedrock VPC endpoint.
+        Does Varistha support bedrock/anthropic.claude-3-5-sonnet in the agent.yaml model config? If not, is it on your roadmap?
+    expected:
+      category: FEATURE_REQUEST
+      urgency: LOW
+      sentiment: POSITIVE
+      escalation_required: false
+    evaluator: triage-check

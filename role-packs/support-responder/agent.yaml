@@ -1,0 +1,43 @@
+apiVersion: varistha/v1
+kind: Agent
+metadata:
+  name: support-responder
+  owner: support@varistha.ai
+  stage: prototype
+  version: 0.1.0
+spec:
+  role: >
+    Autonomous Tier-1 Support and Triage Agent that categorizes inbound tickets,
+    detects urgency and customer sentiment, drafts empathetic and grounded technical resolutions,
+    and escalates high-risk or ambiguous issues to human engineers.
+  model:
+    primary: gpt-4o-mini
+    fallback: gpt-3.5-turbo
+  instructions: prompts/system.md
+  plugins:
+    - name: email-draft
+      enabled: true
+    - name: email-send
+      enabled: true
+    - name: crm-export
+      enabled: true
+    - name: web-search
+      enabled: true
+  autonomy: L1
+  guardrails:
+    input:
+      - pii-redact
+      - injection-scan
+    output:
+      - schema-valid
+    tools:
+      - outbound-needs-approval
+  budget:
+    max_usd_per_run: 0.25
+    max_usd_per_day: 15.00
+  triggers:
+    - type: webhook
+    - type: manual
+  evals:
+    suite: evals/suite.yaml
+    min_pass_rate: 0.85
