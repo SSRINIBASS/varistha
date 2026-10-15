@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import httpx
 import pytest
 from scraper import (
@@ -129,20 +131,23 @@ async def test_scrape_url_mocked_http_success(monkeypatch: pytest.MonkeyPatch) -
             self.is_redirect = False
 
     class MockAsyncClient:
-        def __init__(self, *args, **kwargs) -> None:
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
             pass
 
         async def __aenter__(self) -> MockAsyncClient:
             return self
 
-        async def __aexit__(self, *args) -> None:
+        async def __aexit__(self, *args: Any) -> None:
             pass
 
-        async def get(self, url: str, **kwargs) -> MockResponse:
+        async def get(self, url: str, **kwargs: Any) -> MockResponse:
             return MockResponse()
 
+    def _mock_validate(_url: str) -> None:
+        pass
+
     monkeypatch.setattr(httpx, "AsyncClient", MockAsyncClient)
-    monkeypatch.setattr("scraper.validate_url_against_ssrf", lambda url: None)
+    monkeypatch.setattr("scraper.validate_url_against_ssrf", _mock_validate)
 
     res = await scrape_url("https://varistha.ai/architecture")
     assert res["status_code"] == 200

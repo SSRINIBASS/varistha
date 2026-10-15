@@ -61,7 +61,7 @@ def validate_url_against_ssrf(url: str) -> None:
                            has no hostname, or resolves to a private/loopback/metadata IP.
 
     """
-    if not url or not isinstance(url, str):
+    if not url:
         raise SSRFSecurityError("URL must be a non-empty string.")
 
     parsed = urlparse(url)
@@ -80,10 +80,11 @@ def validate_url_against_ssrf(url: str) -> None:
 
     clean_host = hostname.strip().lower()
 
-    is_local = (
-        clean_host in {"localhost", "localhost.localdomain", "broadcasthost"}
-        or clean_host.endswith(".local")
-    )
+    is_local = clean_host in {
+        "localhost",
+        "localhost.localdomain",
+        "broadcasthost",
+    } or clean_host.endswith(".local")
     if is_local:
         raise SSRFSecurityError(
             f"Access to local hostname '{clean_host}' is blocked for SSRF defense."

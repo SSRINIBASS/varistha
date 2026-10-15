@@ -69,11 +69,7 @@ def extract_links_from_html(html_content: str, base_url: str) -> list[dict[str, 
         clean_text = " ".join(html.unescape(re.sub(r"<[^>]+>", "", text)).split())
         abs_url = urljoin(base_url, clean_href)
 
-        if (
-            abs_url.startswith(("http://", "https://"))
-            and abs_url not in seen_urls
-            and clean_text
-        ):
+        if abs_url.startswith(("http://", "https://")) and abs_url not in seen_urls and clean_text:
             seen_urls.add(abs_url)
             links.append({"text": clean_text, "url": abs_url})
 

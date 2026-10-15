@@ -23,7 +23,7 @@ STANDARD_FIELDNAMES = [
 ]
 
 
-def validate_leads(leads: list[dict[str, Any]]) -> None:
+def validate_leads(leads: Any) -> None:
     """Validate that leads collection contains valid lead dictionaries with identifiers."""
     if not isinstance(leads, list) or len(leads) == 0:
         raise LeadValidationError("Leads collection must be a non-empty list.")
@@ -34,8 +34,7 @@ def validate_leads(leads: list[dict[str, Any]]) -> None:
 
         # Must have at least one identifying property
         has_identifier = any(
-            lead.get(k)
-            for k in ("email", "company", "company_name", "name", "first_name")
+            lead.get(k) for k in ("email", "company", "company_name", "name", "first_name")
         )
         if not has_identifier:
             raise LeadValidationError(
@@ -110,11 +109,7 @@ def export_to_salesforce_format(leads: list[dict[str, Any]]) -> dict[str, Any]:
 
     records: list[dict[str, Any]] = []
     for lead in leads:
-        company_val = (
-            lead.get("company")
-            or lead.get("company_name")
-            or "Unknown Organization"
-        )
+        company_val = lead.get("company") or lead.get("company_name") or "Unknown Organization"
         last_name_val = lead.get("last_name") or lead.get("name") or "Contact"
 
         record: dict[str, Any] = {

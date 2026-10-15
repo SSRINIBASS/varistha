@@ -27,7 +27,7 @@ def _extract_duckduckgo_url(raw_href: str) -> str:
         query_params = parse_qs(parsed.query)
         if query_params.get("uddg"):
             return unquote(query_params["uddg"][0])
-        return raw_href
+    return raw_href
 
 
 def parse_duckduckgo_html(html_content: str, max_results: int = 5) -> list[dict[str, str]]:
@@ -81,11 +81,13 @@ def parse_duckduckgo_html(html_content: str, max_results: int = 5) -> list[dict[
         clean_snippet = _clean_text(snippet_match.group(1)) if snippet_match else ""
 
         if dest_url and clean_title:
-            results.append({
-                "title": clean_title,
-                "url": dest_url,
-                "snippet": clean_snippet,
-            })
+            results.append(
+                {
+                    "title": clean_title,
+                    "url": dest_url,
+                    "snippet": clean_snippet,
+                }
+            )
 
         if len(results) >= max_results:
             break

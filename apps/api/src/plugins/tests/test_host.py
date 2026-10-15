@@ -207,4 +207,3 @@ async def test_execute_core_tools_integration() -> None:
     assert crm_res["format"] == "csv"
     assert "founder@acme.com" in crm_res["payload"]
     assert "untrusted" not in crm_res  # untrusted_output: false
-
