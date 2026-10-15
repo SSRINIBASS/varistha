@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LinkedInPostConfig",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "LinkedIn OAuth App Client ID."
+    },
+    "client_secret": {
+      "type": "string",
+      "description": "LinkedIn OAuth App Client Secret."
+    },
+    "access_token": {
+      "type": "string",
+      "description": "LinkedIn Member or Organization Access Token."
+    },
+    "author_urn": {
+      "type": "string",
+      "description": "URN of the authoring Person or Organization (e.g. urn:li:organization:123)."
+    },
+    "default_visibility": {
+      "type": "string",
+      "enum": ["PUBLIC", "CONNECTIONS"],
+      "default": "PUBLIC",
+      "description": "Post visibility setting."
+    },
+    "mock": {
+      "type": "boolean",
+      "default": true,
+      "description": "When true, simulates posting without calling the official LinkedIn API."
+    }
+  },
+  "additionalProperties": false
+}

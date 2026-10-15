@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import yaml
+from plugins.definitions import build_tool_definition
 from plugins.manifest import PluginManifest
 from pydantic import ValidationError
 
@@ -116,6 +117,54 @@ class PluginHost:
         except ImportError:
             pass
 
+        # 5. email-draft
+        email_draft_dir = self.plugins_dir / "email-draft"
+        if email_draft_dir.exists() and str(email_draft_dir) not in sys.path:
+            sys.path.insert(0, str(email_draft_dir))
+        try:
+            from composer import compose_email_draft  # pyright: ignore[reportMissingImports]
+
+            self.register_handler("email-draft", "compose_email_draft", compose_email_draft)
+            self.register_handler("email-draft", "email_draft", compose_email_draft)
+        except ImportError:
+            pass
+
+        # 6. email-send
+        email_send_dir = self.plugins_dir / "email-send"
+        if email_send_dir.exists() and str(email_send_dir) not in sys.path:
+            sys.path.insert(0, str(email_send_dir))
+        try:
+            from sender import send_email  # pyright: ignore[reportMissingImports]
+
+            self.register_handler("email-send", "send_email", send_email)
+            self.register_handler("email-send", "email_send", send_email)
+        except ImportError:
+            pass
+
+        # 7. x-post
+        x_post_dir = self.plugins_dir / "x-post"
+        if x_post_dir.exists() and str(x_post_dir) not in sys.path:
+            sys.path.insert(0, str(x_post_dir))
+        try:
+            from x_poster import post_to_x  # pyright: ignore[reportMissingImports]
+
+            self.register_handler("x-post", "post_to_x", post_to_x)
+            self.register_handler("x-post", "x_post", post_to_x)
+        except ImportError:
+            pass
+
+        # 8. linkedin-post
+        linkedin_post_dir = self.plugins_dir / "linkedin-post"
+        if linkedin_post_dir.exists() and str(linkedin_post_dir) not in sys.path:
+            sys.path.insert(0, str(linkedin_post_dir))
+        try:
+            from linkedin_poster import post_to_linkedin  # pyright: ignore[reportMissingImports]
+
+            self.register_handler("linkedin-post", "post_to_linkedin", post_to_linkedin)
+            self.register_handler("linkedin-post", "linkedin_post", post_to_linkedin)
+        except ImportError:
+            pass
+
     def register_handler(
         self,
         plugin_name: str,
@@ -195,127 +244,11 @@ class PluginHost:
         )
 
         for name in target_plugins:
-            if name == "web-fetch" and "web-fetch" in self._manifests:
-                tools.append(
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": "web_fetch",
-                            "description": self._manifests["web-fetch"].description,
-                            "parameters": {
-                                "type": "object",
-                                "properties": {
-                                    "url": {
-                                        "type": "string",
-                                        "description": "The public HTTP/HTTPS URL to fetch.",
-                                    },
-                                    "max_chars": {
-                                        "type": "integer",
-                                        "description": "Max characters of text to extract.",
-                                        "default": 10000,
-                                    },
-                                },
-                                "required": ["url"],
-                            },
-                        },
-                    }
-                )
-
-            elif name == "web-search" and "web-search" in self._manifests:
-                tools.append(
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": "web_search",
-                            "description": self._manifests["web-search"].description,
-                            "parameters": {
-                                "type": "object",
-                                "properties": {
-                                    "query": {
-                                        "type": "string",
-                                        "description": "The search query string.",
-                                    },
-                                    "max_results": {
-                                        "type": "integer",
-                                        "description": "Maximum number of search results.",
-                                        "default": 5,
-                                    },
-                                    "engine": {
-                                        "type": "string",
-                                        "description": "Search provider engine.",
-                                        "enum": ["duckduckgo", "mock"],
-                                        "default": "duckduckgo",
-                                    },
-                                },
-                                "required": ["query"],
-                            },
-                        },
-                    }
-                )
-
-            elif name == "web-scrape" and "web-scrape" in self._manifests:
-                tools.append(
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": "web_scrape",
-                            "description": self._manifests["web-scrape"].description,
-                            "parameters": {
-                                "type": "object",
-                                "properties": {
-                                    "url": {
-                                        "type": "string",
-                                        "description": "The public HTTP/HTTPS URL to scrape.",
-                                    },
-                                    "max_chars": {
-                                        "type": "integer",
-                                        "description": "Max characters of markdown content.",
-                                        "default": 25000,
-                                    },
-                                    "extract_headings": {
-                                        "type": "boolean",
-                                        "description": "Whether to extract structured headings.",
-                                        "default": True,
-                                    },
-                                    "extract_links": {
-                                        "type": "boolean",
-                                        "description": "Whether to extract outbound links.",
-                                        "default": True,
-                                    },
-                                },
-                                "required": ["url"],
-                            },
-                        },
-                    }
-                )
-
-            elif name == "crm-export" and "crm-export" in self._manifests:
-                tools.append(
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": "crm_export",
-                            "description": self._manifests["crm-export"].description,
-                            "parameters": {
-                                "type": "object",
-                                "properties": {
-                                    "leads": {
-                                        "type": "array",
-                                        "description": "List of lead objects to export.",
-                                        "items": {"type": "object"},
-                                    },
-                                    "format": {
-                                        "type": "string",
-                                        "description": "Target export format.",
-                                        "enum": ["csv", "hubspot", "salesforce", "json"],
-                                        "default": "csv",
-                                    },
-                                },
-                                "required": ["leads"],
-                            },
-                        },
-                    }
-                )
+            manifest = self._manifests.get(name)
+            if manifest:
+                tool_def = build_tool_definition(name, manifest)
+                if tool_def:
+                    tools.append(tool_def)
 
         return tools
 

@@ -1,0 +1,9 @@
+name: x-post
+version: 0.1.0
+description: Outbound social publishing plugin for X (formerly Twitter) using official v2 API endpoints with character length enforcement and mandatory approval gating.
+scopes:
+  - "x:write"
+  - "social:post"
+requires_approval: true
+untrusted_output: false
+config_schema: config.schema.json

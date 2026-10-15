@@ -1,0 +1,9 @@
+name: linkedin-post
+version: 0.1.0
+description: Outbound professional publishing plugin for LinkedIn using official Community Management UGC APIs with mandatory approval gating.
+scopes:
+  - "linkedin:write"
+  - "social:post"
+requires_approval: true
+untrusted_output: false
+config_schema: config.schema.json

@@ -1,0 +1,8 @@
+name: email-draft
+version: 0.1.0
+description: Contextual email composer that generates personalized, tokenized draft emails from structured inputs.
+scopes:
+  - "email:draft"
+requires_approval: false
+untrusted_output: false
+config_schema: config.schema.json

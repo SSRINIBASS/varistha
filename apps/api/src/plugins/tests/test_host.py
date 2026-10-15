@@ -207,3 +207,91 @@ async def test_execute_core_tools_integration() -> None:
     assert crm_res["format"] == "csv"
     assert "founder@acme.com" in crm_res["payload"]
     assert "untrusted" not in crm_res  # untrusted_output: false
+
+
+def test_discover_plugins_finds_all_communication_plugins() -> None:
+    """PluginHost discovers communication plugins with strict approval requirements."""
+    host = PluginHost()
+    manifests = host.discover_plugins()
+
+    assert "email-draft" in manifests
+    assert "email-send" in manifests
+    assert "x-post" in manifests
+    assert "linkedin-post" in manifests
+
+    assert manifests["email-draft"].requires_approval is False
+    assert manifests["email-send"].requires_approval is True
+    assert manifests["x-post"].requires_approval is True
+    assert manifests["linkedin-post"].requires_approval is True
+
+
+def test_get_tool_definitions_communication_plugins() -> None:
+    """PluginHost returns valid tool schemas for communication plugins."""
+    host = PluginHost()
+    tools = host.get_tool_definitions(
+        enabled_plugin_names=["email-draft", "email-send", "x-post", "linkedin-post"]
+    )
+
+    names = [t["function"]["name"] for t in tools]
+    assert "email_draft" in names
+    assert "email_send" in names
+    assert "x_post" in names
+    assert "linkedin_post" in names
+
+
+@pytest.mark.asyncio
+async def test_execute_communication_tools_integration() -> None:
+    """PluginHost safely executes communication tools."""
+    host = PluginHost()
+    spec = {
+        "spec": {
+            "plugins": [
+                {"name": "email-draft", "enabled": True},
+                {"name": "email-send", "enabled": True},
+                {"name": "x-post", "enabled": True},
+                {"name": "linkedin-post", "enabled": True},
+            ],
+        },
+    }
+
+    # 1. email_draft
+    draft_res = await host.execute_tool(
+        plugin_name="email-draft",
+        tool_name="email_draft",
+        args={"to": "client@example.com", "subject": "Hello", "body": "Welcome to Varistha"},
+        agent_spec=spec,
+    )
+    assert draft_res["status"] == "draft_created"
+    assert draft_res["to"] == "client@example.com"
+
+    # 2. email_send
+    send_res = await host.execute_tool(
+        plugin_name="email-send",
+        tool_name="email_send",
+        args={
+            "to": "client@example.com",
+            "subject": "Update",
+            "body": "Report attached",
+            "dry_run": True,
+        },
+        agent_spec=spec,
+    )
+    assert send_res["status"] == "simulated_sent"
+
+    # 3. x_post
+    x_res = await host.execute_tool(
+        plugin_name="x-post",
+        tool_name="x_post",
+        args={"text": "Varistha open-source update", "mock": True},
+        agent_spec=spec,
+    )
+    assert x_res["status"] == "simulated_posted"
+
+    # 4. linkedin_post
+    li_res = await host.execute_tool(
+        plugin_name="linkedin-post",
+        tool_name="linkedin_post",
+        args={"text": "Excited to share our milestone.", "visibility": "PUBLIC", "mock": True},
+        agent_spec=spec,
+    )
+    assert li_res["status"] == "simulated_posted"

@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EmailDraftConfig",
+  "type": "object",
+  "properties": {
+    "default_tone": {
+      "type": "string",
+      "enum": ["professional", "friendly", "persuasive", "concise"],
+      "default": "professional",
+      "description": "Default writing tone for composed drafts."
+    },
+    "default_sender_name": {
+      "type": "string",
+      "description": "Default sender name to include in draft signatures."
+    },
+    "signature_template": {
+      "type": "string",
+      "description": "Optional markdown signature to append to drafts."
+    }
+  },
+  "additionalProperties": false
+}

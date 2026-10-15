@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "XPostConfig",
+  "type": "object",
+  "properties": {
+    "api_key": {
+      "type": "string",
+      "description": "X API Consumer Key."
+    },
+    "api_secret": {
+      "type": "string",
+      "description": "X API Consumer Secret."
+    },
+    "access_token": {
+      "type": "string",
+      "description": "X OAuth 1.0a User Access Token."
+    },
+    "access_token_secret": {
+      "type": "string",
+      "description": "X OAuth 1.0a User Access Token Secret."
+    },
+    "mock": {
+      "type": "boolean",
+      "default": true,
+      "description": "When true, simulates posting without calling the official X API."
+    }
+  },
+  "additionalProperties": false
+}

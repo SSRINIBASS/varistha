@@ -270,7 +270,6 @@ class LangGraphRuntime:
     ) -> tuple[bool, str, str | None, dict[str, Any]]:
         """Determine whether the executed action requires approval outside the model."""
         outbound_keywords = {
-            "email",
             "send_email",
             "email_send",
             "send_newsletter",
@@ -278,7 +277,10 @@ class LangGraphRuntime:
             "post_social",
             "tweet",
             "post_tweet",
-            "crm",
+            "x_post",
+            "post_to_x",
+            "linkedin_post",
+            "post_to_linkedin",
             "crm_write",
             "update_crm",
             "slack_post",
@@ -303,7 +305,7 @@ class LangGraphRuntime:
         is_outbound = False
         if tool_name:
             normalized = tool_name.lower().replace("-", "_")
-            if any(kw in normalized for kw in outbound_keywords):
+            if "draft" not in normalized and any(kw in normalized for kw in outbound_keywords):
                 is_outbound = True
                 action_type = "outbound_action"
 

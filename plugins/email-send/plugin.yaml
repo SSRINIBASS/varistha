@@ -1,0 +1,8 @@
+name: email-send
+version: 0.1.0
+description: Outbound transactional email sender supporting SMTP, Resend/SendGrid APIs, and test mode with mandatory approval gating and suppression checks.
+scopes:
+  - "email:send"
+requires_approval: true
+untrusted_output: false
+config_schema: config.schema.json

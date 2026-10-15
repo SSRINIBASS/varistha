@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EmailSendConfig",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "type": "string",
+      "enum": ["mock", "smtp", "resend", "sendgrid"],
+      "default": "mock",
+      "description": "Email delivery service provider."
+    },
+    "from_email": {
+      "type": "string",
+      "description": "Default sender email address."
+    },
+    "suppression_list": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of opted-out or suppressed email addresses and domains (CAN-SPAM/GDPR compliance)."
+    },
+    "dry_run": {
+      "type": "boolean",
+      "default": true,
+      "description": "When true, email sending is simulated safely without actual network transmission."
+    }
+  },
+  "additionalProperties": false
+}

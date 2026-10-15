@@ -40,6 +40,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `config.schema.json`: JSON configuration schema for export formats.
   - `exporter.py`: Exporter supporting CSV (with header normalization), HubSpot batch contacts, Salesforce Lead sObjects, and JSON formats, with strict lead identifier validation.
   - `tests/test_exporter.py`: Unit tests for validation rules, CSV generation, and CRM payload schemas.
+- `plugins/email-draft/`: Contextual email composer plugin:
+  - `plugin.yaml`: Manifest declaration (`scopes: [email:draft]`, `requires_approval: false`).
+  - `config.schema.json`: JSON configuration schema for tone, sender name, and signature templates.
+  - `composer.py`: Contextual email composer supporting token interpolation (`{{first_name}}`, `{{company}}`, `{{topic}}`, `{{call_to_action}}`), tone styling, and inbox preview generation.
+  - `tests/test_composer.py`: Unit tests for token interpolation, email address validation, and tone rendering.
+- `plugins/email-send/`: Outbound email transmission plugin:
+  - `plugin.yaml`: Manifest declaration (`scopes: [email:send]`, `requires_approval: true`).
+  - `config.schema.json`: JSON configuration schema for providers (`mock`, `smtp`, `resend`, `sendgrid`), sender email, suppression lists, and dry-run flag.
+  - `sender.py`: Dispatch engine with mandatory suppression/opt-out list enforcement (CAN-SPAM/GDPR/DPDP compliance), email validation, and deterministic mock delivery simulation.
+  - `tests/test_sender.py`: Unit tests for approval gating flag, recipient validation, opt-out suppression blocking, and simulated dispatch.
+- `plugins/x-post/`: Outbound social publishing plugin for X (Twitter):
+  - `plugin.yaml`: Manifest declaration (`scopes: [x:write, social:post]`, `requires_approval: true`).
+  - `config.schema.json`: JSON configuration schema for official API keys and mock mode.
+  - `x_poster.py`: Publishing engine with strict character length validation (1 to 280 characters), thread reply support, and deterministic simulation.
+  - `tests/test_x_poster.py`: Unit tests for 280 character limit enforcement, empty post rejection, and simulated status updates.
+- `plugins/linkedin-post/`: Outbound professional publishing plugin for LinkedIn:
+  - `plugin.yaml`: Manifest declaration (`scopes: [linkedin:write, social:post]`, `requires_approval: true`).
+  - `config.schema.json`: JSON configuration schema for OAuth credentials, visibility, and mock mode.
+  - `linkedin_poster.py`: Publishing engine with character length validation (1 to 3000 characters), visibility options (`PUBLIC`, `CONNECTIONS`), and article attachment support.
+  - `tests/test_linkedin_poster.py`: Unit tests for character limit enforcement, visibility validation, and simulated share updates.
+- `apps/api/src/plugins/definitions.py`: Extracted LiteLLM function calling schemas for all 8 core plugins, keeping `PluginHost` under 300 lines (273 lines).
+- `apps/api/src/plugins/host.py`: Registered handlers for all communication tools and delegated schema generation to `definitions.py`.
+- `apps/api/src/runtime/adapter.py`: Refined runtime approval interception so that internal drafts run autonomously at L1 while outbound actions (`send_email`, `email_send`, `x_post`, `linkedin_post`) require human approval.
+- `docs/adr/0022-outbound-and-communication-plugins.md`: Architecture Decision Record for outbound and communication plugins.
 - `apps/api/src/plugins/host.py`: Wired handlers and OpenAI/LiteLLM function calling definitions for `web_search`, `web_scrape`, and `crm_export`.
 - `docs/adr/0021-core-research-and-data-plugins.md`: Architecture Decision Record for core research and data plugins.
 - `docs/plans/phase-5-task-2-core-research-and-data-plugins.md`: Task plan and acceptance verification record.
