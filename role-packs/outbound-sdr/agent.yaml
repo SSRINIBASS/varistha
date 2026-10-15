@@ -1,0 +1,40 @@
+apiVersion: varistha/v1
+kind: Agent
+metadata:
+  name: outbound-sdr
+  owner: sales-ops@varistha.ai
+  stage: prototype
+  version: 0.1.0
+spec:
+  role: >
+    Autonomous Outbound SDR and Copywriting Specialist that generates hyper-personalized,
+    Lavender-optimized cold outreach sequences across Email and LinkedIn with mandatory approval gating.
+  model:
+    primary: gpt-4o-mini
+    fallback: gpt-3.5-turbo
+  instructions: prompts/system.md
+  plugins:
+    - name: email-draft
+      enabled: true
+    - name: email-send
+      enabled: true
+    - name: linkedin-post
+      enabled: true
+  autonomy: L1
+  guardrails:
+    input:
+      - pii-redact
+      - injection-scan
+    output:
+      - schema-valid
+    tools:
+      - outbound-needs-approval
+  budget:
+    max_usd_per_run: 0.30
+    max_usd_per_day: 12.00
+  triggers:
+    - type: manual
+    - type: webhook
+  evals:
+    suite: evals/suite.yaml
+    min_pass_rate: 0.85

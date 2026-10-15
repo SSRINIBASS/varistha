@@ -1,0 +1,112 @@
+name: outbound-sdr-benchmark
+description: Comprehensive evaluation benchmark for the Outbound SDR & Multi-Channel Copywriting agent.
+min_pass_rate: 0.85
+evaluators:
+  - name: approval-gated-check
+    type: contains
+    threshold: 1.0
+  - name: json-schema-validator
+    type: json-schema
+    config:
+      schema:
+        type: object
+        properties:
+          prospect_name: { type: string }
+          email: { type: string }
+          company: { type: string }
+          touch_1_email:
+            type: object
+            properties:
+              subject: { type: string }
+              body: { type: string }
+              cta: { type: string }
+            required: ["subject", "body", "cta"]
+          touch_2_linkedin:
+            type: object
+            properties:
+              note: { type: string, maxLength: 300 }
+            required: ["note"]
+          touch_3_followup_email:
+            type: object
+            properties:
+              subject: { type: string }
+              body: { type: string }
+            required: ["subject", "body"]
+          approval_status:
+            type: string
+            enum: ["PENDING_OPERATOR_REVIEW"]
+        required: [
+          "prospect_name",
+          "email",
+          "company",
+          "touch_1_email",
+          "touch_2_linkedin",
+          "touch_3_followup_email",
+          "approval_status"
+        ]
+
+cases:
+  - id: case-ai-founder-outreach
+    name: Series A AI Founder Cold Sequence
+    input:
+      prospect_name: Samantha Vance
+      email: samantha@synthetix.ai
+      company: Synthetix AI
+      job_title: Founder & CEO
+      trigger_event: Announced $8M Series A to scale agentic customer workflows.
+      tech_stack: Python, LiteLLM, FastAPI, Docker
+    expected:
+      approval_status: PENDING_OPERATOR_REVIEW
+    evaluator: approval-gated-check
+
+  - id: case-enterprise-vp-engineering
+    name: VP Engineering Security & Control Sequence
+    input:
+      prospect_name: Marcus Sterling
+      email: msterling@omnicloud.com
+      company: OmniCloud
+      job_title: VP of Engineering
+      trigger_event: Published blog post on internal LLM prompt injection risks.
+      tech_stack: LangGraph, PostgreSQL, Kubernetes
+    expected:
+      approval_status: PENDING_OPERATOR_REVIEW
+    evaluator: approval-gated-check
+
+  - id: case-head-of-product-support
+    name: Head of Product Customer Ops Sequence
+    input:
+      prospect_name: Chloe Dupont
+      email: chloe@helpline.io
+      company: Helpline
+      job_title: Head of Product
+      trigger_event: Hiring 3 AI prompt engineers for automated support triage.
+      tech_stack: OpenAI Assistants, Zendesk
+    expected:
+      approval_status: PENDING_OPERATOR_REVIEW
+    evaluator: approval-gated-check
+
+  - id: case-cto-fintech
+    name: Fintech CTO Compliance & Tracing Sequence
+    input:
+      prospect_name: Nathan Drake
+      email: nathan@vaultledger.com
+      company: VaultLedger
+      job_title: Chief Technology Officer
+      trigger_event: Expanding automated AML transaction monitoring bots.
+      tech_stack: Self-hosted Ollama, OpenTelemetry
+    expected:
+      approval_status: PENDING_OPERATOR_REVIEW
+    evaluator: approval-gated-check
+
+  - id: case-ai-ops-director
+    name: Director of AI Ops Spend Management Sequence
+    input:
+      prospect_name: Rachel Bloom
+      email: rachel@datavortex.io
+      company: DataVortex
+      job_title: Director of AI Operations
+      trigger_event: Complained on Twitter about $25k surprise monthly LLM API bills.
+      tech_stack: Anthropic Claude, LangChain
+    expected:
+      approval_status: PENDING_OPERATOR_REVIEW
+    evaluator: approval-gated-check
