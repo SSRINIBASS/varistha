@@ -13,6 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
 if TYPE_CHECKING:
+    from shared.db.models.approval import Approval
     from shared.db.models.run import Run
     from shared.db.models.stage_transition import StageTransition
 
@@ -70,6 +71,13 @@ class Agent(Base, TimestampMixin):
         back_populates="agent",
         cascade="all, delete-orphan",
         order_by="desc(StageTransition.created_at)",
+        lazy="selectin",
+    )
+    approvals: Mapped[list[Approval]] = relationship(
+        "Approval",
+        back_populates="agent",
+        cascade="all, delete-orphan",
+        order_by="desc(Approval.created_at)",
         lazy="selectin",
     )
 

@@ -13,6 +13,7 @@ from runtime.router import get_runtime
 from shared.db.base import Base
 from shared.db.session import get_db_session
 from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
@@ -30,8 +31,8 @@ def mock_runtime() -> MockRuntime:
 
 
 @pytest.fixture
-async def async_client(mock_runtime: MockRuntime) -> AsyncGenerator[AsyncClient, None]:
-    """Provide an AsyncClient with an isolated in-memory SQLite database and MockRuntime."""
+async def test_engine() -> AsyncGenerator[AsyncEngine, None]:
+    """Provide an isolated in-memory SQLite engine with fresh schema."""
     engine = create_async_engine(
         "sqlite+aiosqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -42,11 +43,40 @@ async def async_client(mock_runtime: MockRuntime) -> AsyncGenerator[AsyncClient,
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    session_factory = async_sessionmaker(
-        bind=engine,
+    yield engine
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+    await engine.dispose()
+
+
+@pytest.fixture
+def session_factory(test_engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
+    """Provide a sessionmaker connected to the test database."""
+    return async_sessionmaker(
+        bind=test_engine,
         class_=AsyncSession,
         expire_on_commit=False,
     )
+
+
+@pytest.fixture
+async def db_session(
+    session_factory: async_sessionmaker[AsyncSession],
+) -> AsyncGenerator[AsyncSession, None]:
+    """Provide a direct DB session for unit tests."""
+    async with session_factory() as session:
+        yield session
+
+
+@pytest.fixture
+async def async_client(
+    test_engine: AsyncEngine,
+    session_factory: async_sessionmaker[AsyncSession],
+    mock_runtime: MockRuntime,
+) -> AsyncGenerator[AsyncClient, None]:
+    """Provide an AsyncClient with an isolated in-memory SQLite database and MockRuntime."""
 
     async def _override_get_db_session() -> AsyncGenerator[AsyncSession, None]:
         async with session_factory() as session:
@@ -65,8 +95,3 @@ async def async_client(mock_runtime: MockRuntime) -> AsyncGenerator[AsyncClient,
         yield client
 
     app.dependency_overrides.clear()
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-    await engine.dispose()

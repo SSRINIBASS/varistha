@@ -14,6 +14,7 @@ from sqlalchemy.types import JSON
 
 if TYPE_CHECKING:
     from shared.db.models.agent import Agent, AgentVersion
+    from shared.db.models.approval import Approval
     from shared.db.models.span import Span
 
 
@@ -97,5 +98,12 @@ class Run(Base, TimestampMixin):
         back_populates="run",
         cascade="all, delete-orphan",
         order_by="Span.start_time.asc()",
+        lazy="selectin",
+    )
+    approvals: Mapped[list[Approval]] = relationship(
+        "Approval",
+        back_populates="run",
+        cascade="all, delete-orphan",
+        order_by="Approval.created_at.asc()",
         lazy="selectin",
     )

@@ -9,13 +9,14 @@ from typing import TYPE_CHECKING, Any
 from opentelemetry import trace
 from opentelemetry.context import Context
 from runtime.interface import RunContext
-from shared.db.models import Agent, AgentVersion, Run
+from shared.db.models import Agent, AgentVersion, Approval, Run
 from shared.telemetry import (
     GEN_AI_USAGE_TOTAL_TOKENS,
     VARISTHA_AGENT_ID,
     VARISTHA_AGENT_NAME,
     VARISTHA_AGENT_VERSION,
     VARISTHA_APPROVAL_REQUIRED,
+    VARISTHA_APPROVAL_STATUS,
     VARISTHA_AUTONOMY,
     VARISTHA_COST_USD,
     VARISTHA_RUN_ID,
@@ -156,6 +157,7 @@ async def trigger_agent_run(
             root_span.set_status(trace.StatusCode.OK)
         elif result.status == "waiting_approval":
             root_span.set_attribute(VARISTHA_APPROVAL_REQUIRED, True)
+            root_span.set_attribute(VARISTHA_APPROVAL_STATUS, "pending")
             root_span.set_status(trace.StatusCode.OK)
         else:
             root_span.set_status(trace.StatusCode.ERROR, result.error or "Run failed")
@@ -165,7 +167,23 @@ async def trigger_agent_run(
     run.cost_usd = result.cost_usd
     run.total_tokens = result.total_tokens
     run.error = result.error
-    run.completed_at = datetime.now(UTC)
+
+    if result.status == "waiting_approval":
+        run.completed_at = None
+        proposed = result.proposed_action or {}
+        approval = Approval(
+            run_id=run.id,
+            agent_id=agent.id,
+            status="pending",
+            action_type=proposed.get("action_type", "outbound_action"),
+            tool_name=proposed.get("tool_name"),
+            description=proposed.get("description", "Action requires human approval"),
+            proposed_payload=proposed.get("payload", result.output),
+            created_at=datetime.now(UTC),
+        )
+        session.add(approval)
+    else:
+        run.completed_at = datetime.now(UTC)
 
     await save_captured_spans(session, captured_spans, run.id)
     await session.commit()

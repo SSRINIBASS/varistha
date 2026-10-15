@@ -8,6 +8,7 @@ import click
 
 from varistha_cli import __version__
 from varistha_cli.commands.apply_cmd import apply_command
+from varistha_cli.commands.approvals_cmd import approvals_group
 from varistha_cli.commands.diff_cmd import diff_command
 from varistha_cli.commands.init_cmd import init_command
 from varistha_cli.commands.run_cmd import run_command
@@ -32,6 +33,7 @@ cli.add_command(init_command)
 cli.add_command(apply_command)
 cli.add_command(run_command)
 cli.add_command(diff_command)
+cli.add_command(approvals_group)
 
 
 main = cli

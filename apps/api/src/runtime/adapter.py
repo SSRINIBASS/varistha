@@ -13,6 +13,8 @@ from shared.telemetry import (
     GEN_AI_REQUEST_MODEL,
     GEN_AI_SYSTEM,
     GEN_AI_USAGE_TOTAL_TOKENS,
+    VARISTHA_APPROVAL_REQUIRED,
+    VARISTHA_APPROVAL_STATUS,
     VARISTHA_COST_USD,
     get_tracer,
 )
@@ -137,9 +139,53 @@ class LangGraphRuntime:
                     error=result_state["error"],
                 )
 
+            output = result_state.get("output", {})
+            spec_body = context.spec_snapshot.get("spec", {})
+            autonomy = spec_body.get("autonomy", "L1")
+
+            # Check if this action requires human-in-the-loop approval
+            needs_approval, action_type, tool_name, proposed_payload = (
+                self._check_approval_requirement(
+                    output=output,
+                    input_data=context.input_data,
+                    autonomy=autonomy,
+                )
+            )
+
+            if needs_approval:
+                tracer = get_tracer("varistha.runtime")
+                with tracer.start_as_current_span(
+                    "approval.wait",
+                    attributes={
+                        VARISTHA_APPROVAL_REQUIRED: True,
+                        VARISTHA_APPROVAL_STATUS: "pending",
+                        "varistha.action_type": action_type,
+                        "varistha.tool_name": tool_name or "",
+                    },
+                ) as wait_span:
+                    wait_span.set_status(trace.StatusCode.OK)
+
+                return RunResult(
+                    status="waiting_approval",
+                    output=output,
+                    cost_usd=result_state.get("cost_usd", 0.0),
+                    total_tokens=result_state.get("total_tokens", 0),
+                    error=None,
+                    approval_required=True,
+                    proposed_action={
+                        "action_type": action_type,
+                        "tool_name": tool_name,
+                        "description": (
+                            f"Agent proposed action '{tool_name or action_type}' "
+                            f"requiring approval at autonomy {autonomy}"
+                        ),
+                        "payload": proposed_payload,
+                    },
+                )
+
             return RunResult(
                 status="completed",
-                output=result_state.get("output", {}),
+                output=output,
                 cost_usd=result_state.get("cost_usd", 0.0),
                 total_tokens=result_state.get("total_tokens", 0),
                 error=None,
@@ -152,3 +198,60 @@ class LangGraphRuntime:
                 total_tokens=0,
                 error=f"LangGraph execution error: {exc}",
             )
+
+    @staticmethod
+    def _check_approval_requirement(
+        output: dict[str, Any],
+        input_data: dict[str, Any],
+        autonomy: str,
+    ) -> tuple[bool, str, str | None, dict[str, Any]]:
+        """Determine whether the executed action requires approval outside the model."""
+        outbound_keywords = {
+            "email",
+            "send_email",
+            "email_send",
+            "send_newsletter",
+            "social",
+            "post_social",
+            "tweet",
+            "post_tweet",
+            "crm",
+            "crm_write",
+            "update_crm",
+            "slack_post",
+            "webhook_post",
+        }
+
+        action_name = (
+            output.get("action")
+            or output.get("tool")
+            or input_data.get("action")
+            or input_data.get("tool")
+        )
+        tool_name = str(action_name) if action_name else None
+        action_type = output.get("action_type") or input_data.get("action_type") or "tool_call"
+
+        requires_approval = (
+            output.get("requires_approval") is True
+            or input_data.get("requires_approval") is True
+            or action_type == "outbound_action"
+        )
+
+        is_outbound = False
+        if tool_name:
+            normalized = tool_name.lower().replace("-", "_")
+            if any(kw in normalized for kw in outbound_keywords):
+                is_outbound = True
+                action_type = "outbound_action"
+
+        payload = output.get("payload") or output
+
+        # Autonomy L0: Every proposed action/tool requires approval
+        if autonomy == "L0" and (tool_name or requires_approval or is_outbound):
+            return True, action_type, tool_name, payload
+
+        # Autonomy L1: Outbound actions or tools with requires_approval require approval
+        if autonomy == "L1" and (is_outbound or requires_approval):
+            return True, action_type, tool_name, payload
+
+        return False, action_type, tool_name, {}

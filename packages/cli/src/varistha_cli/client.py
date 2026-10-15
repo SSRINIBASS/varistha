@@ -216,3 +216,93 @@ class VaristhaClient:
             ) from err
         except httpx.RequestError as err:
             raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def list_approvals(
+        self,
+        agent_id: str | None = None,
+        run_id: str | None = None,
+        status: str | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        """Fetch list of approvals with optional filters."""
+        params: dict[str, Any] = {"limit": limit, "offset": offset}
+        if agent_id:
+            params["agent_id"] = agent_id
+        if run_id:
+            params["run_id"] = run_id
+        if status:
+            params["status"] = status
+        try:
+            with self.client() as http_client:
+                resp = http_client.get("/api/v1/approvals", params=params)
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to list approvals: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def get_approval(self, approval_id: str) -> dict[str, Any]:
+        """Fetch a single approval by UUID."""
+        try:
+            with self.client() as http_client:
+                resp = http_client.get(f"/api/v1/approvals/{approval_id}")
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to get approval {approval_id}: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def resolve_approval(
+        self,
+        approval_id: str,
+        decision: str,
+        reviewer: str,
+        approved_payload: dict[str, Any] | None = None,
+        feedback: str | None = None,
+    ) -> dict[str, Any]:
+        """Resolve an approval with approve, reject, or edit."""
+        body: dict[str, Any] = {
+            "decision": decision,
+            "reviewer": reviewer,
+        }
+        if approved_payload is not None:
+            body["approved_payload"] = approved_payload
+        if feedback is not None:
+            body["feedback"] = feedback
+
+        try:
+            with self.client() as http_client:
+                resp = http_client.post(f"/api/v1/approvals/{approval_id}/resolve", json=body)
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to resolve approval {approval_id}: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err

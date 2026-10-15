@@ -31,6 +31,8 @@ class RunResult:
     cost_usd: float = 0.0
     total_tokens: int = 0
     error: str | None = None
+    approval_required: bool = False
+    proposed_action: dict[str, Any] | None = None
 
 
 @runtime_checkable

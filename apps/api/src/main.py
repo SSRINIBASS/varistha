@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from governance.router import router as governance_router
 from observability.router import router as observability_router
 from registry.router import router as registry_router
 from runtime.router import router as runtime_router
@@ -27,6 +28,7 @@ app.add_middleware(
 app.include_router(registry_router)
 app.include_router(runtime_router)
 app.include_router(observability_router)
+app.include_router(governance_router)
 
 
 @app.get("/health", tags=["system"])

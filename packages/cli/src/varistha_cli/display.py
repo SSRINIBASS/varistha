@@ -15,9 +15,9 @@ console = Console()
 def format_status(status: str) -> str:
     """Format run/agent status with color styling."""
     status_lower = status.lower()
-    if status_lower in ("completed", "passed", "active"):
+    if status_lower in ("completed", "passed", "active", "approved"):
         return f"[bold green]{status.upper()}[/bold green]"
-    if status_lower in ("running", "executing"):
+    if status_lower in ("running", "executing", "edited"):
         return f"[bold cyan]{status.upper()}[/bold cyan]"
     if status_lower in ("failed", "error", "rejected"):
         return f"[bold red]{status.upper()}[/bold red]"
@@ -253,3 +253,108 @@ def print_spec_diff(diff_data: dict[str, Any]) -> None:
         table.add_row(e.get("field", ""), type_badge, old_val, new_val, impact_badge)
 
     console.print(table)
+
+
+def display_approvals_table(items: list[dict[str, Any]], total: int) -> None:
+    """Render a styled table of approval requests."""
+    if not items:
+        console.print("[dim]No approval requests found matching criteria.[/dim]")
+        return
+
+    table = Table(
+        title=f"Governance Approvals ({len(items)} of {total})",
+        box=ROUNDED,
+        header_style="bold",
+    )
+    table.add_column("Approval ID", style="cyan")
+    table.add_column("Status", justify="center")
+    table.add_column("Action Type")
+    table.add_column("Tool / Action")
+    table.add_column("Reviewer", style="dim")
+    table.add_column("Created At", style="dim")
+
+    for item in items:
+        appr_id = str(item.get("id", ""))
+        short_id = appr_id[:8] + "..." if len(appr_id) > 12 else appr_id
+        status_styled = format_status(item.get("status", "pending"))
+        action_type = item.get("action_type", "-")
+        tool_name = item.get("tool_name") or "-"
+        reviewer = item.get("reviewer") or "-"
+        created_at = str(item.get("created_at", ""))[:19]
+
+        table.add_row(short_id, status_styled, action_type, tool_name, reviewer, created_at)
+
+    console.print(table)
+
+
+def display_approval_detail(approval: dict[str, Any]) -> None:
+    """Render comprehensive detail view of a single approval request."""
+    import json
+
+    appr_id = approval.get("id", "")
+    status_styled = format_status(approval.get("status", "pending"))
+    action_type = approval.get("action_type", "-")
+    tool_name = approval.get("tool_name") or "-"
+    reviewer = approval.get("reviewer") or "-"
+    feedback = approval.get("feedback") or "-"
+    created_at = str(approval.get("created_at", ""))[:19]
+    resolved_at = str(approval.get("resolved_at", ""))[:19] if approval.get("resolved_at") else "-"
+
+    overview_lines = [
+        f"[bold]Approval ID:[/bold] {appr_id}",
+        f"[bold]Run ID:[/bold] {approval.get('run_id', '-')}",
+        f"[bold]Agent ID:[/bold] {approval.get('agent_id', '-')}",
+        f"[bold]Status:[/bold] {status_styled}",
+        f"[bold]Action Type:[/bold] {action_type}",
+        f"[bold]Tool Name:[/bold] {tool_name}",
+        f"[bold]Created At:[/bold] {created_at}",
+        f"[bold]Resolved At:[/bold] {resolved_at}",
+        f"[bold]Reviewer:[/bold] {reviewer}",
+        f"[bold]Feedback:[/bold] {feedback}",
+    ]
+    if approval.get("description"):
+        overview_lines.append(f"[bold]Description:[/bold] {approval.get('description')}")
+
+    console.print(
+        Panel(
+            "\n".join(overview_lines),
+            title=f"[bold]Approval Detail — {appr_id[:8]}[/bold]",
+            box=ROUNDED,
+            border_style="cyan",
+        )
+    )
+
+    # Proposed Payload
+    proposed_str = json.dumps(approval.get("proposed_payload", {}), indent=2)
+    console.print(
+        Panel(
+            proposed_str,
+            title="[bold yellow]Proposed Payload (Agent Requested)[/bold yellow]",
+            box=ROUNDED,
+            border_style="yellow",
+        )
+    )
+
+    # Approved Payload (if resolved)
+    if approval.get("approved_payload") is not None:
+        approved_str = json.dumps(approval.get("approved_payload", {}), indent=2)
+        console.print(
+            Panel(
+                approved_str,
+                title="[bold green]Approved Payload (Human Approved)[/bold green]",
+                box=ROUNDED,
+                border_style="green",
+            )
+        )
+
+    # Diff (if edited)
+    if approval.get("diff") is not None:
+        diff_str = json.dumps(approval.get("diff", {}), indent=2)
+        console.print(
+            Panel(
+                diff_str,
+                title="[bold cyan]Payload Diff (Proposed vs Final Approved)[/bold cyan]",
+                box=ROUNDED,
+                border_style="cyan",
+            )
+        )

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 3 — Governance & Boundaries
+
+#### Added
+- `apps/api/src/shared/db/models/approval.py`: `Approval` SQLAlchemy model linked to `runs` and `agents` with SQLite/PostgreSQL JSON/JSONB support.
+- `apps/api/alembic/versions/0003_approvals.py`: Migration creating `approvals` table and cascade relationships.
+- `apps/api/src/governance/approvals/`: Complete approval management domain within the `governance` bounded context:
+  - `schemas.py`: Pydantic validation schemas (`ApprovalResponse`, `ApprovalListResponse`, `ApprovalResolveRequest`).
+  - `service.py`: Domain services with `compute_payload_diff` recursive JSON difference calculator and resolution actions (`approve`, `reject`, `edit`).
+  - `router.py`: REST endpoints `GET /api/v1/approvals`, `GET /api/v1/approvals/{id}`, and `POST /api/v1/approvals/{id}/resolve`.
+- `apps/api/src/runtime/adapter.py` & `service.py`: Outside-the-model runtime interruption engine:
+  - Halts execution when autonomy `L0` or `L1` agents invoke outbound tools or actions flagged `requires_approval: true`.
+  - Transitions run status to `waiting_approval` with `completed_at=None`.
+  - Emits OpenTelemetry `approval.wait` trace span with `varistha.approval_required=True` and `varistha.approval_status="pending"`.
+- `packages/cli`: CLI approval governance commands:
+  - `varistha approvals list`: View pending and resolved approvals in formatted Rich table.
+  - `varistha approvals get <id>`: Inspect proposed payload, action type, and status details.
+  - `varistha approvals approve <id>`: Authorize execution and complete run.
+  - `varistha approvals reject <id>`: Abort run with operator rationale.
+  - `varistha approvals edit <id> --payload '<json>'`: Modify proposed payload with field-level diff computation.
+- `docs/adr/0013-approval-workflow-and-runtime-interrupts.md`: Architecture Decision Record for approval workflow and runtime interrupt pattern.
+
+
 ### UI & UX — GitHub Primer Design System & Theme Engine
 
 #### Added
