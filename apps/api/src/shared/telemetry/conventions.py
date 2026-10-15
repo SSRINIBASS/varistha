@@ -13,6 +13,8 @@ VARISTHA_COST_USD = "varistha.cost_usd"
 VARISTHA_TRIGGER_TYPE = "varistha.trigger_type"
 VARISTHA_APPROVAL_REQUIRED = "varistha.approval_required"
 VARISTHA_APPROVAL_STATUS = "varistha.approval_status"
+VARISTHA_BUDGET_EXCEEDED = "varistha.budget.exceeded"
+VARISTHA_KILL_SWITCH_TRIPPED = "varistha.kill_switch_tripped"
 
 # OpenTelemetry GenAI semantic conventions
 GEN_AI_SYSTEM = "gen_ai.system"

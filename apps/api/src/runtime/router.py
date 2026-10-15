@@ -11,6 +11,8 @@ from runtime.interface import Runtime
 from runtime.schemas import RunCreateRequest, RunListResponse, RunResponse
 from runtime.service import (
     AgentNotFoundError,
+    BudgetExceededError,
+    KillSwitchTrippedError,
     NoVersionFoundError,
     get_run,
     list_all_runs,
@@ -66,6 +68,16 @@ async def trigger_run(
     except NoVersionFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+    except KillSwitchTrippedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+    except BudgetExceededError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=str(exc),
         ) from exc
 

@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, time
 from typing import TYPE_CHECKING, Any
 
 from opentelemetry import trace
 from opentelemetry.context import Context
 from runtime.interface import RunContext
-from shared.db.models import Agent, AgentVersion, Approval, Run
+from shared.db.models import Agent, AgentVersion, Approval, Run, SystemSetting
 from shared.telemetry import (
     GEN_AI_USAGE_TOTAL_TOKENS,
     VARISTHA_AGENT_ID,
@@ -18,7 +18,9 @@ from shared.telemetry import (
     VARISTHA_APPROVAL_REQUIRED,
     VARISTHA_APPROVAL_STATUS,
     VARISTHA_AUTONOMY,
+    VARISTHA_BUDGET_EXCEEDED,
     VARISTHA_COST_USD,
+    VARISTHA_KILL_SWITCH_TRIPPED,
     VARISTHA_RUN_ID,
     VARISTHA_STAGE,
     VARISTHA_TRIGGER_TYPE,
@@ -39,6 +41,14 @@ class AgentNotFoundError(Exception):
 
 class NoVersionFoundError(Exception):
     """Raised when the agent has no published versions to execute."""
+
+
+class KillSwitchTrippedError(Exception):
+    """Raised when execution is halted by an agent or global kill switch."""
+
+
+class BudgetExceededError(Exception):
+    """Raised when an execution cannot start because the daily budget limit is exhausted."""
 
 
 def is_valid_uuid(val: str) -> bool:
@@ -111,6 +121,40 @@ async def trigger_agent_run(
     instructions = spec_body.get("instructions", "")
 
     now = datetime.now(UTC)
+
+    # 1. Pre-flight check: Global kill switch
+    stmt_global = select(SystemSetting).where(SystemSetting.key == "global_kill_switch")
+    res_global = await session.execute(stmt_global)
+    global_setting = res_global.scalar_one_or_none()
+    if global_setting and global_setting.value and global_setting.value.get("enabled"):
+        reason = global_setting.value.get("reason") or "Emergency stop"
+        raise KillSwitchTrippedError(
+            f"kill_switch_tripped: Global emergency stop is active ({reason})"
+        )
+
+    # 2. Pre-flight check: Agent kill switch and active status
+    if agent.kill_switch_tripped or not agent.is_active:
+        reason = agent.kill_switch_reason or "Emergency stop"
+        raise KillSwitchTrippedError(
+            f"kill_switch_tripped: Agent '{agent.name}' is halted ({reason})"
+        )
+
+    # 3. Pre-flight check: Daily budget limit
+    budget_cfg = spec_body.get("budget", {})
+    max_usd_per_day = budget_cfg.get("max_usd_per_day") if budget_cfg else None
+    if max_usd_per_day is not None and max_usd_per_day > 0:
+        start_of_day = datetime.combine(now.date(), time.min, tzinfo=UTC)
+        stmt_daily = select(func.coalesce(func.sum(Run.cost_usd), 0.0)).where(
+            Run.agent_id == agent.id,
+            Run.started_at >= start_of_day,
+        )
+        res_daily = await session.execute(stmt_daily)
+        current_daily_spend = float(res_daily.scalar_one())
+        if current_daily_spend >= max_usd_per_day:
+            raise BudgetExceededError(
+                f"budget_exceeded: Daily budget limit of ${max_usd_per_day:.2f} reached "
+                f"(current spend: ${current_daily_spend:.2f})"
+            )
     run = Run(
         agent_id=agent.id,
         agent_version_id=version.id,
@@ -160,6 +204,10 @@ async def trigger_agent_run(
             root_span.set_attribute(VARISTHA_APPROVAL_STATUS, "pending")
             root_span.set_status(trace.StatusCode.OK)
         else:
+            if result.error and "budget_exceeded" in result.error:
+                root_span.set_attribute(VARISTHA_BUDGET_EXCEEDED, True)
+            if result.error and "kill_switch_tripped" in result.error:
+                root_span.set_attribute(VARISTHA_KILL_SWITCH_TRIPPED, True)
             root_span.set_status(trace.StatusCode.ERROR, result.error or "Run failed")
 
     run.status = result.status

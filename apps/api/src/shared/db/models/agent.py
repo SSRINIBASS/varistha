@@ -7,7 +7,7 @@ from datetime import datetime  # noqa: TC003
 from typing import TYPE_CHECKING, Any
 
 from shared.db.base import Base, TimestampMixin, utcnow
-from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, Uuid
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint, Uuid
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
@@ -49,6 +49,24 @@ class Agent(Base, TimestampMixin):
     )
     current_version: Mapped[str | None] = mapped_column(
         String(32),
+        nullable=True,
+    )
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        nullable=False,
+    )
+    kill_switch_tripped: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+    kill_switch_reason: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    kill_switch_tripped_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
         nullable=True,
     )
 

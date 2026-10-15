@@ -306,3 +306,122 @@ class VaristhaClient:
             ) from err
         except httpx.RequestError as err:
             raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def get_agent_budget(self, id_or_name: str) -> dict[str, Any]:
+        """Fetch budget limits, daily spend, and circuit-breaker status for an agent."""
+        try:
+            with self.client() as http_client:
+                resp = http_client.get(f"/api/v1/agents/{id_or_name}/budget")
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to get budget for agent {id_or_name}: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def kill_agent(
+        self,
+        id_or_name: str,
+        reason: str,
+        operator: str = "operator",
+    ) -> dict[str, Any]:
+        """Trip an agent kill switch to halt all execution immediately."""
+        body = {"reason": reason, "operator": operator}
+        try:
+            with self.client() as http_client:
+                resp = http_client.post(f"/api/v1/agents/{id_or_name}/kill", json=body)
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to trip kill switch for agent {id_or_name}: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def resume_agent(
+        self,
+        id_or_name: str,
+        operator: str = "operator",
+    ) -> dict[str, Any]:
+        """Clear an agent kill switch and reactivate execution."""
+        try:
+            with self.client() as http_client:
+                resp = http_client.post(
+                    f"/api/v1/agents/{id_or_name}/resume",
+                    params={"operator": operator},
+                )
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to resume agent {id_or_name}: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def get_global_kill_switch(self) -> dict[str, Any]:
+        """Fetch system-wide emergency stop status."""
+        try:
+            with self.client() as http_client:
+                resp = http_client.get("/api/v1/system/kill-switch")
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to get system kill switch: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def set_global_kill_switch(
+        self,
+        enabled: bool,
+        reason: str | None = None,
+        operator: str = "operator",
+    ) -> dict[str, Any]:
+        """Toggle system-wide emergency stop status."""
+        body = {"enabled": enabled, "reason": reason, "operator": operator}
+        try:
+            with self.client() as http_client:
+                resp = http_client.post("/api/v1/system/kill-switch", json=body)
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to update system kill switch: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err

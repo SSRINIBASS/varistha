@@ -26,7 +26,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `varistha approvals approve <id>`: Authorize execution and complete run.
   - `varistha approvals reject <id>`: Abort run with operator rationale.
   - `varistha approvals edit <id> --payload '<json>'`: Modify proposed payload with field-level diff computation.
-- `docs/adr/0013-approval-workflow-and-runtime-interrupts.md`: Architecture Decision Record for approval workflow and runtime interrupt pattern.
+- `apps/api/src/shared/db/models/setting.py`: `SystemSetting` model for platform-wide control plane dynamic settings including global emergency stop.
+- `apps/api/src/shared/db/models/agent.py`: Extended `Agent` entity with `is_active`, `kill_switch_tripped`, `kill_switch_reason`, and `kill_switch_tripped_at`.
+- `apps/api/alembic/versions/0004_budgets_and_killswitch.py`: Database migration with SQLite batch table alteration and `system_settings` table.
+- `apps/api/src/governance/budgets/`: Isolated budget management and circuit-breaker service within the `governance` bounded context:
+  - `schemas.py`: Pydantic models `AgentBudgetStatusResponse`, `KillSwitchRequest`, `KillSwitchResponse`, `GlobalKillSwitchRequest`, `GlobalKillSwitchStatus`.
+  - `service.py`: Domain services with daily rolling spend aggregation (`get_daily_spend`), agent budget status, agent kill/resume switches, and global emergency stop toggle.
+  - `router.py`: REST endpoints `GET /api/v1/agents/{id}/budget`, `POST /api/v1/agents/{id}/kill`, `POST /api/v1/agents/{id}/resume`, `GET /api/v1/system/kill-switch`, and `POST /api/v1/system/kill-switch`.
+- `apps/api/src/runtime/adapter.py` & `service.py`: Outside-the-model financial circuit breaker and kill-switch enforcement:
+  - Aborts execution with status `failed` and error `budget_exceeded: Run cost ($X) exceeded limit ($Y)` when `max_usd_per_run` is breached.
+  - Rejects run initiation with HTTP 429 (`BudgetExceededError`) when UTC daily spend meets or exceeds `max_usd_per_day`.
+  - Rejects run initiation with HTTP 409 (`KillSwitchTrippedError`) when agent kill switch is tripped or global emergency stop is active.
+  - Tags root OpenTelemetry trace spans with `varistha.budget.exceeded = True` and `varistha.kill_switch_tripped = True`.
+- `packages/cli`: CLI budget tracking and circuit-breaker commands:
+  - `varistha budget <agent>`: Displays Rich table or JSON view of daily spend, limits, remaining budget, and switch states.
+  - `varistha kill <agent>`: Trips agent kill switch with operator rationale.
+  - `varistha resume <agent>`: Reactivates agent execution.
+  - `varistha emergency-stop`: Inspects or toggles platform-wide emergency stop.
+- `docs/adr/0014-budget-tracking-and-circuit-breakers.md`: Architecture Decision Record for budget tracking, rate limits, and emergency kill switches.
+- `docs/plans/phase-3-task-2-budgets-and-kill-switch.md`: Implementation plan and exit criteria verification for Phase 3 Task 2.
 
 
 ### UI & UX — GitHub Primer Design System & Theme Engine

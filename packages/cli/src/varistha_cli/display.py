@@ -358,3 +358,116 @@ def display_approval_detail(approval: dict[str, Any]) -> None:
                 border_style="cyan",
             )
         )
+
+
+def display_agent_budget(b: dict[str, Any]) -> None:
+    """Render financial spend, ceilings, and circuit-breaker flags for an agent."""
+    agent_name = b.get("agent_name", "Unknown")
+    is_active = b.get("is_active", True)
+    kill_tripped = b.get("kill_switch_tripped", False)
+
+    if kill_tripped:
+        status_styled = "[bold red]HALTED (Kill Switch Tripped)[/bold red]"
+    elif not is_active:
+        status_styled = "[bold yellow]INACTIVE[/bold yellow]"
+    else:
+        status_styled = "[bold green]ACTIVE[/bold green]"
+
+    daily_spend = b.get("daily_spend_usd", 0.0)
+    runs_count = b.get("daily_runs_count", 0)
+    max_run = b.get("max_usd_per_run")
+    max_day = b.get("max_usd_per_day")
+    remaining = b.get("daily_budget_remaining_usd")
+    pct = b.get("daily_budget_utilization_pct")
+
+    lines = [
+        f"[bold]Agent Name:[/bold] {agent_name}",
+        f"[bold]Operational Status:[/bold] {status_styled}",
+    ]
+
+    if kill_tripped:
+        lines.append(f"[bold red]Trip Reason:[/bold red] {b.get('kill_switch_reason', '-')}")
+        tripped_at = str(b.get("kill_switch_tripped_at", ""))[:19]
+        lines.append(f"[bold red]Tripped At:[/bold red] {tripped_at}")
+
+    lines.append(f"[bold]Today's Spend:[/bold] [yellow]${daily_spend:.4f}[/yellow]")
+    lines.append(f"[bold]Runs Executed Today:[/bold] {runs_count}")
+
+    if max_run is not None:
+        lines.append(f"[bold]Max Budget Per Run:[/bold] [cyan]${max_run:.2f}[/cyan]")
+    else:
+        lines.append("[bold]Max Budget Per Run:[/bold] [dim]Unbounded[/dim]")
+
+    if max_day is not None:
+        lines.append(f"[bold]Max Budget Per Day:[/bold] [cyan]${max_day:.2f}[/cyan]")
+        lines.append(f"[bold]Remaining Today:[/bold] [green]${remaining:.4f}[/green]")
+        pct_color = "green" if (pct or 0) < 80 else ("yellow" if (pct or 0) < 100 else "red")
+        pct_str = f"[{pct_color}]{pct:.1f}%[/{pct_color}]"
+        lines.append(f"[bold]Daily Budget Utilization:[/bold] {pct_str}")
+    else:
+        lines.append("[bold]Max Budget Per Day:[/bold] [dim]Unbounded[/dim]")
+
+    console.print(
+        Panel(
+            "\n".join(lines),
+            title=f"[bold]Financial Budget & Circuit Breaker — {agent_name}[/bold]",
+            box=ROUNDED,
+            border_style="red" if kill_tripped else "cyan",
+        )
+    )
+
+
+def display_kill_switch_event(event: dict[str, Any], action: str) -> None:
+    """Render confirmation panel for tripping or resuming an agent kill switch."""
+    agent_name = event.get("agent_name", "Unknown")
+    if action == "kill":
+        console.print(
+            Panel(
+                f"[bold red]EMERGENCY STOP ACTIVATED[/bold red]\n"
+                f"Agent [bold]{agent_name}[/bold] has been halted.\n"
+                f"Reason: {event.get('reason', '-')}\n"
+                f"Operator: {event.get('operator', '-')}",
+                title="[bold red]Circuit Breaker Tripped[/bold red]",
+                box=ROUNDED,
+                border_style="red",
+            )
+        )
+    else:
+        console.print(
+            Panel(
+                f"[bold green]AGENT RESUMED[/bold green]\n"
+                f"Agent [bold]{agent_name}[/bold] kill switch cleared.\n"
+                f"Execution re-enabled by operator: {event.get('operator', '-')}",
+                title="[bold green]Normal Operation Restored[/bold green]",
+                box=ROUNDED,
+                border_style="green",
+            )
+        )
+
+
+def display_global_kill_switch(status_data: dict[str, Any]) -> None:
+    """Render platform-wide emergency stop status."""
+    enabled = status_data.get("enabled", False)
+    if enabled:
+        console.print(
+            Panel(
+                f"[bold red]PLATFORM EMERGENCY STOP ACTIVE[/bold red]\n"
+                f"All agent executions across the entire control plane are halted.\n"
+                f"Reason: {status_data.get('reason', '-')}\n"
+                f"Tripped At: {status_data.get('tripped_at', '-')}\n"
+                f"Operator: {status_data.get('operator', '-')}",
+                title="[bold red]Global Kill Switch[/bold red]",
+                box=ROUNDED,
+                border_style="red",
+            )
+        )
+    else:
+        console.print(
+            Panel(
+                "[bold green]GLOBAL EMERGENCY STOP INACTIVE[/bold green]\n"
+                "Control plane agent execution engine is operating normally.",
+                title="[bold green]Global Kill Switch[/bold green]",
+                box=ROUNDED,
+                border_style="green",
+            )
+        )

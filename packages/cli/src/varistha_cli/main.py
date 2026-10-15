@@ -9,6 +9,12 @@ import click
 from varistha_cli import __version__
 from varistha_cli.commands.apply_cmd import apply_command
 from varistha_cli.commands.approvals_cmd import approvals_group
+from varistha_cli.commands.budget_cmd import (
+    budget_command,
+    emergency_stop_command,
+    kill_command,
+    resume_command,
+)
 from varistha_cli.commands.diff_cmd import diff_command
 from varistha_cli.commands.init_cmd import init_command
 from varistha_cli.commands.run_cmd import run_command
@@ -34,6 +40,10 @@ cli.add_command(apply_command)
 cli.add_command(run_command)
 cli.add_command(diff_command)
 cli.add_command(approvals_group)
+cli.add_command(budget_command)
+cli.add_command(kill_command)
+cli.add_command(resume_command)
+cli.add_command(emergency_stop_command)
 
 
 main = cli

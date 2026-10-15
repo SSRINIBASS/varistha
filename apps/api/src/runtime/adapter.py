@@ -140,8 +140,24 @@ class LangGraphRuntime:
                 )
 
             output = result_state.get("output", {})
+            cost_usd = result_state.get("cost_usd", 0.0)
             spec_body = context.spec_snapshot.get("spec", {})
             autonomy = spec_body.get("autonomy", "L1")
+
+            # Check per-run budget ceiling circuit breaker
+            budget_cfg = spec_body.get("budget", {})
+            max_usd_per_run = budget_cfg.get("max_usd_per_run") if budget_cfg else None
+            if max_usd_per_run is not None and max_usd_per_run > 0 and cost_usd > max_usd_per_run:
+                return RunResult(
+                    status="failed",
+                    output=output,
+                    cost_usd=cost_usd,
+                    total_tokens=result_state.get("total_tokens", 0),
+                    error=(
+                        f"budget_exceeded: Run cost of ${cost_usd:.4f} "
+                        f"exceeded maximum per-run budget of ${max_usd_per_run:.2f}"
+                    ),
+                )
 
             # Check if this action requires human-in-the-loop approval
             needs_approval, action_type, tool_name, proposed_payload = (
