@@ -1,6 +1,7 @@
 """Varistha Control Plane API — FastAPI application entry point."""
 
 from fastapi import FastAPI
+from observability.router import router as observability_router
 from registry.router import router as registry_router
 from runtime.router import router as runtime_router
 
@@ -16,6 +17,7 @@ app = FastAPI(
 
 app.include_router(registry_router)
 app.include_router(runtime_router)
+app.include_router(observability_router)
 
 
 @app.get("/health", tags=["system"])

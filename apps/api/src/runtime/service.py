@@ -6,8 +6,25 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
+from opentelemetry import trace
+from opentelemetry.context import Context
 from runtime.interface import RunContext
 from shared.db.models import Agent, AgentVersion, Run
+from shared.telemetry import (
+    GEN_AI_USAGE_TOTAL_TOKENS,
+    VARISTHA_AGENT_ID,
+    VARISTHA_AGENT_NAME,
+    VARISTHA_AGENT_VERSION,
+    VARISTHA_APPROVAL_REQUIRED,
+    VARISTHA_AUTONOMY,
+    VARISTHA_COST_USD,
+    VARISTHA_RUN_ID,
+    VARISTHA_STAGE,
+    VARISTHA_TRIGGER_TYPE,
+    capture_run_spans,
+    get_tracer,
+    save_captured_spans,
+)
 from sqlalchemy import func, select
 
 if TYPE_CHECKING:
@@ -115,7 +132,33 @@ async def trigger_agent_run(
         spec_snapshot=spec,
     )
 
-    result = await runtime.execute(context)
+    tracer = get_tracer("varistha.runtime")
+    with (
+        capture_run_spans(run.id) as captured_spans,
+        tracer.start_as_current_span(
+            "agent.run",
+            context=Context(),
+            attributes={
+                VARISTHA_RUN_ID: str(run.id),
+                VARISTHA_AGENT_ID: str(agent.id),
+                VARISTHA_AGENT_NAME: agent.name,
+                VARISTHA_AGENT_VERSION: version.version,
+                VARISTHA_STAGE: spec.get("metadata", {}).get("stage", "prototype"),
+                VARISTHA_AUTONOMY: spec_body.get("autonomy", "L1"),
+                VARISTHA_TRIGGER_TYPE: trigger_type,
+            },
+        ) as root_span,
+    ):
+        result = await runtime.execute(context)
+        root_span.set_attribute(VARISTHA_COST_USD, result.cost_usd)
+        root_span.set_attribute(GEN_AI_USAGE_TOTAL_TOKENS, result.total_tokens)
+        if result.status == "completed":
+            root_span.set_status(trace.StatusCode.OK)
+        elif result.status == "waiting_approval":
+            root_span.set_attribute(VARISTHA_APPROVAL_REQUIRED, True)
+            root_span.set_status(trace.StatusCode.OK)
+        else:
+            root_span.set_status(trace.StatusCode.ERROR, result.error or "Run failed")
 
     run.status = result.status
     run.output = result.output
@@ -124,6 +167,7 @@ async def trigger_agent_run(
     run.error = result.error
     run.completed_at = datetime.now(UTC)
 
+    await save_captured_spans(session, captured_spans, run.id)
     await session.commit()
     await session.refresh(run)
     return run

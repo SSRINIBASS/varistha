@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Phase 1 — Walking Skeleton (Week 2-3)
 
 #### Added
+- `apps/api/src/observability` and `apps/api/src/shared/telemetry`: OpenTelemetry instrumentation, OTLP/HTTP receiver, and span persistence
+  - OpenTelemetry semantic conventions (`conventions.py`): `varistha.*` attributes and GenAI conventions (`gen_ai.*`)
+  - PII and secret redaction (`redaction.py`): Automatic sanitization of bearer tokens, API keys, passwords, and emails
+  - OTLP/HTTP receiver endpoints (`router.py`): `POST /v1/traces` and `POST /api/v1/traces` supporting standard OTLP JSON export with Protobuf AnyValue decoding
+  - Span persistence & queries: Storage in `spans` table, queried via `GET /api/v1/runs/{id}/spans` and `GET /api/v1/traces/{trace_id}`
+  - Decoupled runtime tracing: In-process span recorder capturing `agent.run` root spans and `llm.call` child spans without cross-context import violations
+  - 20 unit and integration tests across parser, telemetry, and router with 93% test coverage
+- `docs/adr/0007-opentelemetry-instrumentation-and-otlp-receiver.md` — ADR documenting OpenTelemetry architecture, OTLP receiver, and span persistence
 - `packages/spec`: Agent Spec Pydantic v2 models, YAML/dict validator, JSON Schema generator
   - Models: `AgentSpec`, `AgentMetadata`, `AgentSpecBody`, `ModelConfig`, `PluginRef`,
     `GuardrailsConfig`, `BudgetConfig`, `TriggerConfig`, `EvalConfig`

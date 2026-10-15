@@ -7,7 +7,15 @@ from typing import Any, TypedDict
 
 import litellm
 from langgraph.graph import END, START, StateGraph
+from opentelemetry import trace
 from runtime.interface import RunContext, RunResult
+from shared.telemetry import (
+    GEN_AI_REQUEST_MODEL,
+    GEN_AI_SYSTEM,
+    GEN_AI_USAGE_TOTAL_TOKENS,
+    VARISTHA_COST_USD,
+    get_tracer,
+)
 
 
 class AgentState(TypedDict):
@@ -35,43 +43,56 @@ class LangGraphRuntime:
         workflow = StateGraph(AgentState)
 
         async def call_model_node(state: AgentState) -> dict[str, Any]:
-            """Invoke the language model through LiteLLM."""
-            try:
-                response: Any = await litellm.acompletion(
-                    model=state["model"],
-                    messages=state["messages"],
-                    timeout=self.default_timeout_seconds,
-                )
-
-                content = response.choices[0].message.content or ""
-                total_tokens = response.usage.total_tokens if response.usage else 0
-
+            """Invoke the language model through LiteLLM with OpenTelemetry tracing."""
+            tracer = get_tracer("varistha.runtime")
+            with tracer.start_as_current_span(
+                "llm.call",
+                attributes={
+                    GEN_AI_SYSTEM: "litellm",
+                    GEN_AI_REQUEST_MODEL: state["model"],
+                },
+            ) as span:
                 try:
-                    cost = float(litellm.completion_cost(completion_response=response) or 0.0)
-                except Exception:
-                    cost = 0.0
+                    response: Any = await litellm.acompletion(
+                        model=state["model"],
+                        messages=state["messages"],
+                        timeout=self.default_timeout_seconds,
+                    )
 
-                # Try parsing structured JSON if applicable, otherwise wrap text
-                parsed_output: dict[str, Any]
-                try:
-                    parsed = json.loads(content)
-                    parsed_output = parsed if isinstance(parsed, dict) else {"response": parsed}
-                except (json.JSONDecodeError, TypeError):
-                    parsed_output = {"response": content}
+                    content = response.choices[0].message.content or ""
+                    total_tokens = response.usage.total_tokens if response.usage else 0
 
-                return {
-                    "output": parsed_output,
-                    "total_tokens": total_tokens,
-                    "cost_usd": cost,
-                    "error": None,
-                }
-            except Exception as exc:
-                return {
-                    "output": {},
-                    "total_tokens": 0,
-                    "cost_usd": 0.0,
-                    "error": str(exc),
-                }
+                    try:
+                        cost = float(litellm.completion_cost(completion_response=response) or 0.0)
+                    except Exception:
+                        cost = 0.0
+
+                    span.set_attribute(GEN_AI_USAGE_TOTAL_TOKENS, total_tokens)
+                    span.set_attribute(VARISTHA_COST_USD, cost)
+                    span.set_status(trace.StatusCode.OK)
+
+                    # Try parsing structured JSON if applicable, otherwise wrap text
+                    parsed_output: dict[str, Any]
+                    try:
+                        parsed = json.loads(content)
+                        parsed_output = parsed if isinstance(parsed, dict) else {"response": parsed}
+                    except (json.JSONDecodeError, TypeError):
+                        parsed_output = {"response": content}
+
+                    return {
+                        "output": parsed_output,
+                        "total_tokens": total_tokens,
+                        "cost_usd": cost,
+                        "error": None,
+                    }
+                except Exception as exc:
+                    span.set_status(trace.StatusCode.ERROR, str(exc))
+                    return {
+                        "output": {},
+                        "total_tokens": 0,
+                        "cost_usd": 0.0,
+                        "error": str(exc),
+                    }
 
         workflow.add_node("call_model", call_model_node)
         workflow.add_edge(START, "call_model")
