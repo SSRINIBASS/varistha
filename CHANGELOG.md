@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 4 — Evals & Confidence
+
+#### Added
+- `packages/spec/src/eval_models.py`: Declarative Pydantic schema for `varistha/v1 EvalSuite` with `EvaluatorConfig` (exact-match, contains, regex, json-schema, semantic-similarity, llm-rubric) and `TestCaseConfig` datasets.
+- `apps/api/src/shared/db/models/eval.py`: SQLAlchemy models `EvalSuite`, `EvalRun`, and `EvalResult` with cascade deletions and JSON/JSONB support.
+- `apps/api/alembic/versions/0005_evals.py`: Database migration creating `eval_suites`, `eval_runs`, and `eval_results` tables and indexes.
+- `apps/api/src/governance/evals/`: Evaluation domain services and endpoints under `/api/v1/evals`:
+  - `schemas.py`: Pydantic validation schemas (`EvalSuiteCreate`, `EvalSuiteResponse`, `EvalRunCreate`, `EvalResultCreate`, `EvalRunDetailResponse`).
+  - `service.py`: Domain services for suite registration, run initialization, results recording, and pass rate aggregation.
+  - `router.py`: REST endpoints `POST /api/v1/evals/suites`, `GET /api/v1/evals/suites`, `GET /api/v1/evals/suites/{id}`, `POST /api/v1/evals/runs`, `POST /api/v1/evals/runs/{id}/results`, `GET /api/v1/evals/runs`, `GET /api/v1/evals/runs/{id}`.
+- `docs/adr/0017-eval-suite-schema-and-datasets.md`: Architecture Decision Record for eval suites and results storage.
+- `docs/plans/phase-4-task-1-eval-suite-schema-and-datasets.md`: Task plan and exit criteria verification.
+
 ### Phase 3 — Governance & Boundaries
 
 #### Added

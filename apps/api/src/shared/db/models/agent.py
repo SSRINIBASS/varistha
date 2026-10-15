@@ -14,6 +14,7 @@ from sqlalchemy.types import JSON
 
 if TYPE_CHECKING:
     from shared.db.models.approval import Approval
+    from shared.db.models.eval import EvalRun, EvalSuite
     from shared.db.models.run import Run
     from shared.db.models.stage_transition import StageTransition
 
@@ -96,6 +97,20 @@ class Agent(Base, TimestampMixin):
         back_populates="agent",
         cascade="all, delete-orphan",
         order_by="desc(Approval.created_at)",
+        lazy="selectin",
+    )
+    eval_suites: Mapped[list[EvalSuite]] = relationship(
+        "EvalSuite",
+        back_populates="agent",
+        cascade="all, delete-orphan",
+        order_by="desc(EvalSuite.created_at)",
+        lazy="selectin",
+    )
+    eval_runs: Mapped[list[EvalRun]] = relationship(
+        "EvalRun",
+        back_populates="agent",
+        cascade="all, delete-orphan",
+        order_by="desc(EvalRun.created_at)",
         lazy="selectin",
     )
 

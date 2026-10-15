@@ -21,6 +21,14 @@ Exports:
 """
 
 from diff import ChangeType, DiffEntry, SpecDiff, diff_specs
+from eval_models import (
+    EvalSuiteDoc,
+    EvalSuiteMetadata,
+    EvalSuiteSpec,
+    EvaluatorConfig,
+    EvaluatorType,
+    TestCaseConfig,
+)
 from exceptions import SpecValidationError
 from models import (
     AgentMetadata,
@@ -44,11 +52,17 @@ __all__ = [
     "ChangeType",
     "DiffEntry",
     "EvalConfig",
+    "EvalSuiteDoc",
+    "EvalSuiteMetadata",
+    "EvalSuiteSpec",
+    "EvaluatorConfig",
+    "EvaluatorType",
     "GuardrailsConfig",
     "ModelConfig",
     "PluginRef",
     "SpecDiff",
     "SpecValidationError",
+    "TestCaseConfig",
     "TriggerConfig",
     "diff_specs",
     "generate_json_schema",
