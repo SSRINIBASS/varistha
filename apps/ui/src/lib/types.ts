@@ -363,4 +363,27 @@ export interface ConfidenceEvaluationRequest {
   schema_def?: Record<string, unknown> | null;
 }
 
+// --- Plugin Ecosystem Domain Models ---
+
+export type PluginRiskLevel = "low" | "medium" | "high";
+export type PluginTransport = "in-process" | "mcp-stdio" | "mcp-sse";
+
+export interface PluginInfo {
+  name: string;
+  version: string;
+  description: string;
+  transport: PluginTransport;
+  risk: PluginRiskLevel;
+  scopes: string[];
+  requires_approval: boolean;
+  untrusted_output: boolean;
+  config_schema?: Record<string, unknown> | null;
+  tools: string[];
+}
+
+export interface PluginListResponse {
+  plugins: PluginInfo[];
+  total: number;
+}
+
 

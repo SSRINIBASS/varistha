@@ -14,6 +14,7 @@ import {
   Layers,
   Sparkles,
   ShieldCheck,
+  ShieldAlert,
   Archive,
   Ban,
   Radio,
@@ -375,5 +376,81 @@ export function RegressionStatusBadge({
         </span>
       );
   }
+}
+
+interface PluginRiskBadgeProps {
+  risk: "low" | "medium" | "high" | string;
+  className?: string;
+}
+
+export function PluginRiskBadge({ risk, className = "" }: PluginRiskBadgeProps) {
+  const norm = risk.toLowerCase();
+  switch (norm) {
+    case "low":
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 ${className}`}
+        >
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+          <span>Low Risk</span>
+        </span>
+      );
+    case "medium":
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 ${className}`}
+        >
+          <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+          <span>Medium Risk</span>
+        </span>
+      );
+    case "high":
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/30 ${className}`}
+        >
+          <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+          <span>High Risk</span>
+        </span>
+      );
+    default:
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border ${className}`}
+        >
+          <span>{risk}</span>
+        </span>
+      );
+  }
+}
+
+interface ApprovalRequiredBadgeProps {
+  required: boolean;
+  className?: string;
+}
+
+export function ApprovalRequiredBadge({
+  required,
+  className = "",
+}: ApprovalRequiredBadgeProps) {
+  if (required) {
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 ${className}`}
+      >
+        <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+        <span>Approval Required</span>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 ${className}`}
+    >
+      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+      <span>Auto-Executable</span>
+    </span>
+  );
 }
 

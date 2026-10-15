@@ -185,3 +185,23 @@ class PluginHost:
                 )
 
         return tools
+
+    def get_tools_for_plugin(self, plugin_name: str) -> list[str]:
+        """Return names of registered tools for a given plugin."""
+        return list(self._tool_handlers.get(plugin_name, {}).keys())
+
+    def get_config_schema(self, plugin_name: str) -> dict[str, Any] | None:
+        """Parse and return the JSON configuration schema for a plugin if available."""
+        manifest = self._manifests.get(plugin_name)
+        if not manifest or not manifest.config_schema:
+            return None
+
+        schema_path = (self.plugins_dir / plugin_name / manifest.config_schema).resolve()
+        if schema_path.exists() and schema_path.is_file():
+            try:
+                import json
+
+                return json.loads(schema_path.read_text(encoding="utf-8"))
+            except Exception:
+                return None
+        return None

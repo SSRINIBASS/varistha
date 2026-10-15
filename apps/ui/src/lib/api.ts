@@ -19,6 +19,8 @@ import type {
   GateEvaluation,
   GlobalKillSwitchStatus,
   HealthStatus,
+  PluginInfo,
+  PluginListResponse,
   PolicyListResponse,
   PolicyTestResponse,
   PromoteAgentRequest,
@@ -382,6 +384,14 @@ export async function evaluateConfidence(
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export async function getPlugins(): Promise<PluginListResponse> {
+  return request<PluginListResponse>("/api/v1/plugins");
+}
+
+export async function getPlugin(name: string): Promise<PluginInfo> {
+  return request<PluginInfo>(`/api/v1/plugins/${encodeURIComponent(name)}`);
 }
 
 

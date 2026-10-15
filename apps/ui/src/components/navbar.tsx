@@ -18,6 +18,7 @@ import {
   Search,
   Plus,
   FlaskConical,
+  Blocks,
 } from "lucide-react";
 import { checkHealth, getAgents, getApprovals } from "@/lib/api";
 import { ThemeToggle } from "./theme-toggle";
@@ -97,6 +98,12 @@ export function Navbar() {
       href: "/evals",
       icon: FlaskConical,
       match: (p: string) => p.startsWith("/evals"),
+    },
+    {
+      label: "Plugins",
+      href: "/plugins",
+      icon: Blocks,
+      match: (p: string) => p.startsWith("/plugins"),
     },
   ];
 

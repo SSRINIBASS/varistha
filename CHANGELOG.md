@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 5 — Plugin Ecosystem & Role Packs
+
+- `apps/api/src/plugins/`: Plugin manifest registry and capability discovery API:
+  - `schemas.py`: Pydantic response models `PluginInfoResponse` and `PluginListResponse` exposing metadata, risk level, scopes, untrusted output quarantine, and configuration schema.
+  - `host.py`: Added discovery helpers `get_tools_for_plugin` and `get_config_schema` to enumerate exposed tool capabilities and JSON configuration schemas.
+  - `router.py`: REST endpoints `GET /api/v1/plugins` and `GET /api/v1/plugins/{name}`.
+  - `tests/test_router.py`: Unit and integration test suite covering plugin enumeration, detail retrieval, error handling, and host dependency injection.
+- `apps/ui/src/app/plugins/page.tsx`: Plugins & Capability Management control plane hub:
+  - Summary KPI cards (Installed Plugins, Low Risk, Approval Gated, Untrusted Output Quarantined).
+  - Subnav underline tabs for `Plugin Directory` and `Security Architecture` documentation.
+- `apps/ui/src/components/plugins/`:
+  - `plugin-card.tsx`: Card component displaying plugin metadata, transport tags, semantic risk badges, approval gating badges, untrusted output flags, permission scopes, and tool chips.
+  - `plugin-inspector.tsx`: Tabbed modal inspector for governance properties, JSON Schema configuration, and raw plugin manifests.
+  - `plugin-explorer.tsx`: Searchable and filterable plugin catalog supporting search by keyword and filtering by risk level, transport type, and approval policy.
+- `apps/ui/src/components/badges.tsx`: Added `PluginRiskBadge` (`low`, `medium`, `high`) and `ApprovalRequiredBadge` (`Approval Required`, `Auto-Executable`).
+- `apps/ui/src/components/navbar.tsx`: Added `Plugins` navigation item with `Blocks` icon.
+- `apps/ui/src/__tests__/plugins.test.tsx`: Comprehensive unit tests for badges, card interactions, inspector modal tabs, and explorer filters.
+- `docs/adr/0020-plugin-manifest-registry-and-toggle-system.md`: Architecture Decision Record for the plugin manifest registry, UI explorer, and security boundary gating.
+
 ### Phase 4 — Evals & Confidence
 
 - `apps/ui/src/app/evals/page.tsx`: Evaluations & Verifiable Confidence control plane hub:
