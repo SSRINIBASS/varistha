@@ -1,6 +1,7 @@
 """Varistha Control Plane API — FastAPI application entry point."""
 
 from fastapi import FastAPI
+from registry.router import router as registry_router
 
 app = FastAPI(
     title="Varistha Control Plane",
@@ -11,6 +12,8 @@ app = FastAPI(
     version="0.1.0",
     license_info={"name": "Apache-2.0", "url": "https://www.apache.org/licenses/LICENSE-2.0"},
 )
+
+app.include_router(registry_router)
 
 
 @app.get("/health", tags=["system"])

@@ -30,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 14 new unit and integration tests (7 model tests, 2 migration tests, 5 session tests) with 96% coverage
 - `docs/adr/0003-database-schema-and-migrations.md` — ADR documenting database architecture, UUIDs, JSONB variants, selectin loading, and migration strategy
 - New dev dependency: `aiosqlite>=0.20.0` (MIT) for fast in-memory async database testing
+- `apps/api/src/registry`: REST API endpoints to register, list, get, and version agents
+  - Pydantic response models (`schemas.py`): `AgentResponse`, `AgentDetailResponse`, `AgentListResponse`, `AgentVersionSummaryResponse`, `AgentVersionDetailResponse`, `ValidationErrorDetail`
+  - Service layer (`service.py`): UUID/slug resolution, filtered pagination, spec validation via `packages/spec`, version immutability enforcement
+  - Endpoints (`router.py`): `POST /api/v1/agents`, `GET /api/v1/agents`, `GET /api/v1/agents/{id_or_name}`, `GET /api/v1/agents/{id_or_name}/versions`, `GET /api/v1/agents/{id_or_name}/versions/{version}`, `POST /api/v1/agents/{id_or_name}/versions`
+  - Coverage & concurrency: Configured `greenlet` and `thread` concurrency in `pyproject.toml`
+  - 13 integration tests (`test_router.py`) with 100% test coverage on `registry/` modules
+- `docs/adr/0004-registry-api-design.md` — ADR documenting registry API routes, immutability rules, and service layer architecture
 
 ### Phase 0 — Foundations (Week 1)
 
