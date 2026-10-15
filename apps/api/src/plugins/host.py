@@ -54,7 +54,7 @@ class PluginHost:
                         if isinstance(content, dict):
                             manifest = PluginManifest.model_validate(content)
                             self._manifests[manifest.name] = manifest
-                    except Exception:  # noqa: S112
+                    except (yaml.YAMLError, ValueError, ValidationError):
                         continue
 
         return self._manifests
