@@ -21,6 +21,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/adr/0002-agent-spec-schema.md` — Pydantic v2 choice, `extra=forbid` policy,
   instructions-as-string rationale, autonomy Literal enum rationale
 - New dependency: `email-validator>=2.1` (MIT) for `EmailStr` owner field validation
+- `apps/api/src/shared/db`: SQLAlchemy 2.0 async database layer & Alembic migrations
+  - ORM models: `Agent`, `AgentVersion`, `Run`, and `Span` with UUID primary keys, JSONB/JSON spec snapshots, cascading deletes, and `lazy="selectin"` async relationships
+  - Database engine and session factory (`apps/api/src/shared/db/session.py`) with `get_db_session()` dependency generator
+  - Application settings (`apps/api/src/shared/config.py`) via `pydantic-settings`
+  - Alembic configuration (`apps/api/alembic.ini`, `apps/api/alembic/env.py`) supporting both async (`postgresql+asyncpg`, `sqlite+aiosqlite`) and sync database connections
+  - Baseline migration `0001_initial_schema.py` creating `agents`, `agent_versions`, `runs`, and `spans` tables with indexes and constraints
+  - 14 new unit and integration tests (7 model tests, 2 migration tests, 5 session tests) with 96% coverage
+- `docs/adr/0003-database-schema-and-migrations.md` — ADR documenting database architecture, UUIDs, JSONB variants, selectin loading, and migration strategy
+- New dev dependency: `aiosqlite>=0.20.0` (MIT) for fast in-memory async database testing
 
 ### Phase 0 — Foundations (Week 1)
 
