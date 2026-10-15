@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Phase 1 — Walking Skeleton (Week 2-3)
 
 #### Added
+- `packages/cli`: Varistha CLI developer workflow commands (`init`, `apply`, `run`)
+  - Scaffolding (`varistha init [NAME]`): Interactive or flag-driven creation of canonical `agent.yaml` specifications compliant with `varistha-spec`
+  - Declarative sync (`varistha apply -f <path>`): Offline local spec validation followed by idempotent API registration (`POST /api/v1/agents` or `POST /api/v1/agents/{id}/versions`)
+  - Execution run (`varistha run <id-or-name>`): Trigger runs via API with polling watch mode spinner, USD cost attribution, token breakdowns, trace ID display, and machine-readable `--json` output
+  - Rich terminal formatting with cross-platform CP1252/Windows console resilience
+  - Decoupled HTTP client (`VaristhaClient`) communicating strictly via REST endpoints with zero internal API code imports
+  - 37 unit and integration tests; 94% test coverage on `packages/cli`
+- `docs/adr/0008-cli-architecture-and-workflow.md` — ADR documenting CLI architecture, client boundaries, offline validation, and watch mode polling
 - `apps/api/src/observability` and `apps/api/src/shared/telemetry`: OpenTelemetry instrumentation, OTLP/HTTP receiver, and span persistence
   - OpenTelemetry semantic conventions (`conventions.py`): `varistha.*` attributes and GenAI conventions (`gen_ai.*`)
   - PII and secret redaction (`redaction.py`): Automatic sanitization of bearer tokens, API keys, passwords, and emails

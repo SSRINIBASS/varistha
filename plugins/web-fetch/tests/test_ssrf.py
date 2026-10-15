@@ -55,9 +55,16 @@ def test_ssrf_rejects_empty_or_malformed_url() -> None:
         validate_url_against_ssrf("not-a-valid-url")
 
 
-def test_ssrf_allows_public_ip_and_domain() -> None:
+def test_ssrf_allows_public_ip_and_domain(monkeypatch: pytest.MonkeyPatch) -> None:
     """Public domain URLs pass SSRF verification."""
+    import socket
+
     # 8.8.8.8 is a public DNS IP literal
     validate_url_against_ssrf("https://8.8.8.8")
-    # example.com resolves to public IANA IP (93.184.215.14)
+
+    # Mock DNS resolution for domain to ensure deterministic offline execution
+    def mock_getaddrinfo(*args: object, **kwargs: object) -> list[tuple[object, ...]]:
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.215.14", 443))]
+
+    monkeypatch.setattr(socket, "getaddrinfo", mock_getaddrinfo)
     validate_url_against_ssrf("https://example.com")
