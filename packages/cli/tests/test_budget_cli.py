@@ -114,6 +114,7 @@ def test_resume_command(runner: CliRunner, monkeypatch: pytest.MonkeyPatch) -> N
 
 def test_emergency_stop_command(runner: CliRunner, monkeypatch: pytest.MonkeyPatch) -> None:
     """`varistha emergency-stop` queries and toggles global stop."""
+
     # Query inactive
     def mock_get_global(*args: Any, **kwargs: Any) -> dict[str, Any]:
         return {"enabled": False}
