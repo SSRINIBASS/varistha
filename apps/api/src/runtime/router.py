@@ -14,6 +14,7 @@ from runtime.service import (
     BudgetExceededError,
     KillSwitchTrippedError,
     NoVersionFoundError,
+    PolicyViolationError,
     get_run,
     list_all_runs,
     list_runs_for_agent,
@@ -78,6 +79,11 @@ async def trigger_run(
     except BudgetExceededError as exc:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=str(exc),
+        ) from exc
+    except PolicyViolationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
         ) from exc
 

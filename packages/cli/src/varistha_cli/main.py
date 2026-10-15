@@ -17,6 +17,7 @@ from varistha_cli.commands.budget_cmd import (
 )
 from varistha_cli.commands.diff_cmd import diff_command
 from varistha_cli.commands.init_cmd import init_command
+from varistha_cli.commands.policies_cmd import policies_group
 from varistha_cli.commands.run_cmd import run_command
 
 
@@ -44,6 +45,7 @@ cli.add_command(budget_command)
 cli.add_command(kill_command)
 cli.add_command(resume_command)
 cli.add_command(emergency_stop_command)
+cli.add_command(policies_group)
 
 
 main = cli

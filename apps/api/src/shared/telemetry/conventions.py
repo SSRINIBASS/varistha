@@ -15,6 +15,11 @@ VARISTHA_APPROVAL_REQUIRED = "varistha.approval_required"
 VARISTHA_APPROVAL_STATUS = "varistha.approval_status"
 VARISTHA_BUDGET_EXCEEDED = "varistha.budget.exceeded"
 VARISTHA_KILL_SWITCH_TRIPPED = "varistha.kill_switch_tripped"
+VARISTHA_GUARDRAIL_NAME = "varistha.guardrail.name"
+VARISTHA_GUARDRAIL_HOOK = "varistha.guardrail.hook"
+VARISTHA_GUARDRAIL_PASSED = "varistha.guardrail.passed"
+VARISTHA_GUARDRAIL_ACTION = "varistha.guardrail.action"
+VARISTHA_GUARDRAIL_VIOLATIONS = "varistha.guardrail.violations"
 
 # OpenTelemetry GenAI semantic conventions
 GEN_AI_SYSTEM = "gen_ai.system"

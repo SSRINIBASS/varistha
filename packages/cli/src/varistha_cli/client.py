@@ -425,3 +425,49 @@ class VaristhaClient:
             ) from err
         except httpx.RequestError as err:
             raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def list_policies(self) -> dict[str, Any]:
+        """Fetch list of registered platform guardrail policies."""
+        try:
+            with self.client() as http_client:
+                resp = http_client.get("/api/v1/policies")
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to list policies: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def test_policy(
+        self,
+        policy_name: str,
+        payload: Any,
+        hook: str = "input",
+    ) -> dict[str, Any]:
+        """Evaluate a guardrail policy interactively."""
+        body = {"policy_name": policy_name, "payload": payload, "hook": hook}
+        try:
+            with self.client() as http_client:
+                resp = http_client.post("/api/v1/policies/test", json=body)
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to test policy '{policy_name}': {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err

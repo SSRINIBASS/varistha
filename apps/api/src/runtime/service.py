@@ -10,6 +10,12 @@ from opentelemetry import trace
 from opentelemetry.context import Context
 from runtime.interface import RunContext
 from shared.db.models import Agent, AgentVersion, Approval, Run, SystemSetting
+from shared.guardrails import (
+    PolicyAction,
+    PolicyContext,
+    PolicyHook,
+    default_policy_engine,
+)
 from shared.telemetry import (
     GEN_AI_USAGE_TOTAL_TOKENS,
     VARISTHA_AGENT_ID,
@@ -49,6 +55,10 @@ class KillSwitchTrippedError(Exception):
 
 class BudgetExceededError(Exception):
     """Raised when an execution cannot start because the daily budget limit is exhausted."""
+
+
+class PolicyViolationError(Exception):
+    """Raised when an execution is blocked by a guardrail policy."""
 
 
 def is_valid_uuid(val: str) -> bool:
@@ -101,10 +111,15 @@ async def trigger_agent_run(
     session: AsyncSession,
     id_or_name: str,
     input_data: dict[str, Any],
-    trigger_type: str,
-    runtime: Runtime,
+    trigger_type: str = "manual",
+    runtime: Runtime | None = None,
 ) -> Run:
     """Create a Run record and execute the agent through the runtime engine."""
+    if runtime is None:
+        from runtime.adapter import LangGraphRuntime
+
+        runtime = LangGraphRuntime()
+
     agent = await resolve_agent(session, id_or_name)
     if agent is None:
         raise AgentNotFoundError(f"Agent '{id_or_name}' not found")
@@ -155,32 +170,62 @@ async def trigger_agent_run(
                 f"budget_exceeded: Daily budget limit of ${max_usd_per_day:.2f} reached "
                 f"(current spend: ${current_daily_spend:.2f})"
             )
-    run = Run(
-        agent_id=agent.id,
-        agent_version_id=version.id,
-        status="running",
-        trigger_type=trigger_type,
-        input=input_data,
-        started_at=now,
-    )
-    session.add(run)
-    await session.commit()
-    await session.refresh(run)
 
-    context = RunContext(
-        run_id=run.id,
-        agent_id=agent.id,
-        agent_name=agent.name,
-        model=model,
-        instructions=instructions,
-        input_data=input_data,
-        spec_snapshot=spec,
-    )
+    # 4. Pre-flight check: Input guardrails (outside the model)
+    guardrails_cfg = spec_body.get("guardrails", {})
+    input_policies = guardrails_cfg.get("input", []) if guardrails_cfg else []
+    effective_input_data = input_data
+    run_id = uuid.uuid4()
 
-    tracer = get_tracer("varistha.runtime")
-    with (
-        capture_run_spans(run.id) as captured_spans,
-        tracer.start_as_current_span(
+    with capture_run_spans(run_id) as captured_spans:
+        if input_policies:
+            policy_ctx = PolicyContext(
+                agent_id=str(agent.id),
+                agent_name=agent.name,
+                hook=PolicyHook.INPUT,
+            )
+            guardrail_res = await default_policy_engine.evaluate(
+                input_policies,
+                hook=PolicyHook.INPUT,
+                data=input_data,
+                context=policy_ctx,
+            )
+            if not guardrail_res.passed or guardrail_res.action == PolicyAction.BLOCK.value:
+                violations_str = (
+                    "; ".join(guardrail_res.violations) or "Input blocked by guardrail policy"
+                )
+                raise PolicyViolationError(f"policy_violation: {violations_str}")
+            if (
+                guardrail_res.action == PolicyAction.REDACT.value
+                and guardrail_res.modified_data is not None
+            ):
+                effective_input_data = guardrail_res.modified_data
+
+        run = Run(
+            id=run_id,
+            agent_id=agent.id,
+            agent_version_id=version.id,
+            status="running",
+            trigger_type=trigger_type,
+            input=effective_input_data,
+            started_at=now,
+        )
+        session.add(run)
+        await session.commit()
+        await session.refresh(run)
+
+        context = RunContext(
+            run_id=run.id,
+            agent_id=agent.id,
+            agent_name=agent.name,
+            model=model,
+            instructions=instructions,
+            input_data=effective_input_data,
+            spec_snapshot=spec,
+        )
+
+        tracer = get_tracer("varistha.runtime")
+        with tracer.start_as_current_span(
             "agent.run",
             context=Context(),
             attributes={
@@ -192,51 +237,50 @@ async def trigger_agent_run(
                 VARISTHA_AUTONOMY: spec_body.get("autonomy", "L1"),
                 VARISTHA_TRIGGER_TYPE: trigger_type,
             },
-        ) as root_span,
-    ):
-        result = await runtime.execute(context)
-        root_span.set_attribute(VARISTHA_COST_USD, result.cost_usd)
-        root_span.set_attribute(GEN_AI_USAGE_TOTAL_TOKENS, result.total_tokens)
-        if result.status == "completed":
-            root_span.set_status(trace.StatusCode.OK)
-        elif result.status == "waiting_approval":
-            root_span.set_attribute(VARISTHA_APPROVAL_REQUIRED, True)
-            root_span.set_attribute(VARISTHA_APPROVAL_STATUS, "pending")
-            root_span.set_status(trace.StatusCode.OK)
+        ) as root_span:
+            result = await runtime.execute(context)
+            root_span.set_attribute(VARISTHA_COST_USD, result.cost_usd)
+            root_span.set_attribute(GEN_AI_USAGE_TOTAL_TOKENS, result.total_tokens)
+            if result.status == "completed":
+                root_span.set_status(trace.StatusCode.OK)
+            elif result.status == "waiting_approval":
+                root_span.set_attribute(VARISTHA_APPROVAL_REQUIRED, True)
+                root_span.set_attribute(VARISTHA_APPROVAL_STATUS, "pending")
+                root_span.set_status(trace.StatusCode.OK)
+            else:
+                if result.error and "budget_exceeded" in result.error:
+                    root_span.set_attribute(VARISTHA_BUDGET_EXCEEDED, True)
+                if result.error and "kill_switch_tripped" in result.error:
+                    root_span.set_attribute(VARISTHA_KILL_SWITCH_TRIPPED, True)
+                root_span.set_status(trace.StatusCode.ERROR, result.error or "Run failed")
+
+        run.status = result.status
+        run.output = result.output
+        run.cost_usd = result.cost_usd
+        run.total_tokens = result.total_tokens
+        run.error = result.error
+
+        if result.status == "waiting_approval":
+            run.completed_at = None
+            proposed = result.proposed_action or {}
+            approval = Approval(
+                run_id=run.id,
+                agent_id=agent.id,
+                status="pending",
+                action_type=proposed.get("action_type", "outbound_action"),
+                tool_name=proposed.get("tool_name"),
+                description=proposed.get("description", "Action requires human approval"),
+                proposed_payload=proposed.get("payload", result.output),
+                created_at=datetime.now(UTC),
+            )
+            session.add(approval)
         else:
-            if result.error and "budget_exceeded" in result.error:
-                root_span.set_attribute(VARISTHA_BUDGET_EXCEEDED, True)
-            if result.error and "kill_switch_tripped" in result.error:
-                root_span.set_attribute(VARISTHA_KILL_SWITCH_TRIPPED, True)
-            root_span.set_status(trace.StatusCode.ERROR, result.error or "Run failed")
+            run.completed_at = datetime.now(UTC)
 
-    run.status = result.status
-    run.output = result.output
-    run.cost_usd = result.cost_usd
-    run.total_tokens = result.total_tokens
-    run.error = result.error
-
-    if result.status == "waiting_approval":
-        run.completed_at = None
-        proposed = result.proposed_action or {}
-        approval = Approval(
-            run_id=run.id,
-            agent_id=agent.id,
-            status="pending",
-            action_type=proposed.get("action_type", "outbound_action"),
-            tool_name=proposed.get("tool_name"),
-            description=proposed.get("description", "Action requires human approval"),
-            proposed_payload=proposed.get("payload", result.output),
-            created_at=datetime.now(UTC),
-        )
-        session.add(approval)
-    else:
-        run.completed_at = datetime.now(UTC)
-
-    await save_captured_spans(session, captured_spans, run.id)
-    await session.commit()
-    await session.refresh(run)
-    return run
+        await save_captured_spans(session, captured_spans, run.id)
+        await session.commit()
+        await session.refresh(run)
+        return run
 
 
 async def get_run(session: AsyncSession, run_id: uuid.UUID) -> Run | None:

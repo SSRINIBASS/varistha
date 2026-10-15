@@ -38,11 +38,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rejects run initiation with HTTP 429 (`BudgetExceededError`) when UTC daily spend meets or exceeds `max_usd_per_day`.
   - Rejects run initiation with HTTP 409 (`KillSwitchTrippedError`) when agent kill switch is tripped or global emergency stop is active.
   - Tags root OpenTelemetry trace spans with `varistha.budget.exceeded = True` and `varistha.kill_switch_tripped = True`.
-- `packages/cli`: CLI budget tracking and circuit-breaker commands:
-  - `varistha budget <agent>`: Displays Rich table or JSON view of daily spend, limits, remaining budget, and switch states.
-  - `varistha kill <agent>`: Trips agent kill switch with operator rationale.
-  - `varistha resume <agent>`: Reactivates agent execution.
-  - `varistha emergency-stop`: Inspects or toggles platform-wide emergency stop.
+- `apps/api/src/shared/guardrails/`: Core Policy Framework and Built-in Policies:
+  - `interface.py`: Core contracts `PolicyHook`, `PolicyAction`, `PolicyResult`, `PolicyContext`, and `BasePolicy`.
+  - `registry.py`: `PolicyRegistry` with discovery and default policy registration.
+  - `engine.py`: `PolicyEngine` orchestrating sequential evaluation, redaction chaining, block short-circuiting, and OpenTelemetry `guardrail.check` span generation.
+  - `builtin/pii.py`: `PIIRedactionPolicy` for emails, phone numbers, credit card numbers with Luhn check, SSNs, API keys / bearer tokens, and IPv4 addresses across text and recursive JSON structures.
+  - `builtin/injection.py`: `PromptInjectionPolicy` scanning for instruction overrides, jailbreak phrases, delimiter hijacking (`<system>`, `[INST]`, `### Instruction:`), and data exfiltration patterns.
+  - `builtin/schema.py`: `SchemaValidationPolicy` verifying JSON string and dictionary schema conformity.
+  - `builtin/unverified_claims.py`: `NoUnverifiedClaimsPolicy` detecting ungrounded absolute guarantees.
+- `apps/api/src/governance/policies/`: Governance REST API endpoints:
+  - `GET /api/v1/policies`: Lists all registered policies and supported hook points.
+  - `POST /api/v1/policies/test`: Evaluates policies interactively against sample payloads.
+- `apps/api/src/runtime/service.py` & `adapter.py`: Outside-the-model runtime guardrail interception:
+  - Pre-flight `spec.guardrails.input` evaluation before runtime invocation, rejecting injection attacks with HTTP 422 (`PolicyViolationError`) or propagating sanitized input to execution context.
+  - Post-execution `spec.guardrails.output` validation enforcing output schema conformity.
+  - Telemetry: OpenTelemetry `guardrail.check` spans with `varistha.guardrail.*` semantic conventions.
+- `packages/cli`: CLI inspection and testing commands:
+  - `varistha policies list`: Formatted table of registered guardrails.
+  - `varistha policies test <policy_name> -i <text>`: Interactively tests policies and outputs detailed outcomes and alerts.
+- `docs/adr/0015-guardrail-policy-engine-and-middleware.md`: ADR documenting guardrail policy engine, built-ins, and outside-the-model middleware.
 - `docs/adr/0014-budget-tracking-and-circuit-breakers.md`: Architecture Decision Record for budget tracking, rate limits, and emergency kill switches.
 - `docs/plans/phase-3-task-2-budgets-and-kill-switch.md`: Implementation plan and exit criteria verification for Phase 3 Task 2.
 

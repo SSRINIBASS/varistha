@@ -6,6 +6,12 @@ from typing import TYPE_CHECKING, Any
 
 from opentelemetry import trace
 from runtime.interface import RunResult
+from shared.guardrails import (
+    PolicyAction,
+    PolicyContext,
+    PolicyHook,
+    default_policy_engine,
+)
 from shared.telemetry import (
     GEN_AI_REQUEST_MODEL,
     GEN_AI_SYSTEM,
@@ -78,6 +84,47 @@ class MockRuntime:
                 "result": f"Executed agent '{context.agent_name}' with model '{context.model}'",
                 "received_input": context.input_data,
             }
+
+            # Evaluate output guardrails
+            spec_snapshot = context.spec_snapshot or {}
+            guardrails_cfg = spec_snapshot.get("spec", {}).get("guardrails", {})
+            output_policies = guardrails_cfg.get("output", []) if guardrails_cfg else []
+            if output_policies:
+                policy_ctx = PolicyContext(
+                    agent_id=str(context.agent_id),
+                    agent_name=context.agent_name,
+                    hook=PolicyHook.OUTPUT,
+                )
+                output_guardrail_res = await default_policy_engine.evaluate(
+                    output_policies,
+                    hook=PolicyHook.OUTPUT,
+                    data=output,
+                    context=policy_ctx,
+                )
+                if (
+                    not output_guardrail_res.passed
+                    or output_guardrail_res.action == PolicyAction.BLOCK.value
+                ):
+                    violations_str = (
+                        "; ".join(output_guardrail_res.violations)
+                        or "Output blocked by guardrail policy"
+                    )
+                    return RunResult(
+                        status="failed",
+                        output={},
+                        cost_usd=self.cost_usd,
+                        total_tokens=self.tokens,
+                        error=f"policy_violation: {violations_str}",
+                    )
+                if (
+                    output_guardrail_res.action == PolicyAction.REDACT.value
+                    and output_guardrail_res.modified_data is not None
+                ):
+                    output = (
+                        output_guardrail_res.modified_data
+                        if isinstance(output_guardrail_res.modified_data, dict)
+                        else {"result": output_guardrail_res.modified_data}
+                    )
 
             return RunResult(
                 status="completed",

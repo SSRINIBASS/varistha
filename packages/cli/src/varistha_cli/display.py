@@ -471,3 +471,71 @@ def display_global_kill_switch(status_data: dict[str, Any]) -> None:
                 border_style="green",
             )
         )
+
+
+def display_policies_table(items: list[dict[str, Any]], total: int) -> None:
+    """Render a styled table of registered guardrail policies."""
+    if not items:
+        console.print("[yellow]No guardrail policies registered.[/yellow]")
+        return
+
+    table = Table(
+        title=f"Guardrail Policies ({total} available)",
+        box=ROUNDED,
+        show_header=True,
+        header_style="bold",
+    )
+    table.add_column("Policy Name", style="bold cyan")
+    table.add_column("Hooks", justify="center")
+    table.add_column("Description")
+
+    for p in items:
+        hooks = ", ".join(f"[magenta]{h}[/magenta]" for h in p.get("supported_hooks", []))
+        table.add_row(p.get("name", "-"), hooks, p.get("description", "-"))
+
+    console.print(table)
+
+
+def display_policy_test_result(result: dict[str, Any]) -> None:
+    """Render the outcome of testing a guardrail policy."""
+    passed = result.get("passed", False)
+    action = result.get("action", "allow")
+    policy_name = result.get("policy_name", "-")
+
+    if not passed or action == "block":
+        violations = result.get("violations", [])
+        viol_text = "\n".join(f"  - [red]{v}[/red]" for v in violations)
+        console.print(
+            Panel(
+                f"[bold red]POLICY BLOCKED: {policy_name}[/bold red]\n"
+                f"Action: [bold red]{action.upper()}[/bold red]\n\n"
+                f"Violations Detected:\n{viol_text}",
+                title="[bold red]Guardrail Check Failed[/bold red]",
+                box=ROUNDED,
+                border_style="red",
+            )
+        )
+    elif action == "redact":
+        mod = result.get("modified_data")
+        mod_repr = str(mod) if mod is not None else "-"
+        console.print(
+            Panel(
+                f"[bold yellow]POLICY REDACTED: {policy_name}[/bold yellow]\n"
+                f"Action: [bold yellow]{action.upper()}[/bold yellow]\n\n"
+                f"Sanitized Output:\n[dim]{mod_repr}[/dim]",
+                title="[bold yellow]Guardrail PII Redaction[/bold yellow]",
+                box=ROUNDED,
+                border_style="yellow",
+            )
+        )
+    else:
+        console.print(
+            Panel(
+                f"[bold green]POLICY PASSED: {policy_name}[/bold green]\n"
+                f"Action: [bold green]{action.upper()}[/bold green]\n"
+                f"Payload conforms to guardrail requirements.",
+                title="[bold green]Guardrail Check Passed[/bold green]",
+                box=ROUNDED,
+                border_style="green",
+            )
+        )
