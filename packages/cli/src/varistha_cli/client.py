@@ -471,3 +471,133 @@ class VaristhaClient:
             ) from err
         except httpx.RequestError as err:
             raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def create_eval_suite(
+        self,
+        agent_id: str,
+        name: str,
+        config: dict[str, Any],
+        description: str | None = None,
+        eval_type: str = "offline",
+    ) -> dict[str, Any]:
+        """Create a new evaluation suite."""
+        payload = {
+            "agent_id": agent_id,
+            "name": name,
+            "description": description,
+            "config": config,
+            "eval_type": eval_type,
+        }
+        try:
+            with self.client() as http_client:
+                resp = http_client.post("/api/v1/evals/suites", json=payload)
+                if resp.status_code not in (200, 201):
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to create eval suite: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def list_eval_suites(
+        self,
+        agent_id: str | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        """List evaluation suites."""
+        params: dict[str, Any] = {"limit": limit, "offset": offset}
+        if agent_id:
+            params["agent_id"] = agent_id
+        try:
+            with self.client() as http_client:
+                resp = http_client.get("/api/v1/evals/suites", params=params)
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to list eval suites: {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def get_eval_suite(self, suite_id: str) -> dict[str, Any]:
+        """Get evaluation suite details."""
+        try:
+            with self.client() as http_client:
+                resp = http_client.get(f"/api/v1/evals/suites/{suite_id}")
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to get eval suite '{suite_id}': {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def execute_eval_suite(
+        self,
+        suite_id: str,
+        agent_version_id: str | None = None,
+        trigger: str = "cli",
+    ) -> dict[str, Any]:
+        """Execute an evaluation suite against an agent version."""
+        params: dict[str, Any] = {"trigger": trigger}
+        if agent_version_id:
+            params["agent_version_id"] = agent_version_id
+        try:
+            with self.client() as http_client:
+                resp = http_client.post(f"/api/v1/evals/suites/{suite_id}/execute", params=params)
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to execute eval suite '{suite_id}': {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err
+
+    def get_eval_run(self, run_id: str) -> dict[str, Any]:
+        """Get evaluation run details with granular assertion results."""
+        try:
+            with self.client() as http_client:
+                resp = http_client.get(f"/api/v1/evals/runs/{run_id}")
+                if resp.status_code != 200:
+                    raise VaristhaApiError(
+                        resp.status_code,
+                        f"Failed to get eval run '{run_id}': {resp.text}",
+                        details=_safe_details(resp),
+                    )
+                data: dict[str, Any] = resp.json()
+                return data
+        except httpx.ConnectError as err:
+            raise VaristhaConnectionError(
+                f"Could not connect to Varistha API at {self.base_url}. Is the server running?"
+            ) from err
+        except httpx.RequestError as err:
+            raise VaristhaConnectionError(f"Request to {self.base_url} failed: {err}") from err

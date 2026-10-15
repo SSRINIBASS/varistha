@@ -175,3 +175,32 @@ async def get_eval_run(
             detail=f"Eval run '{run_id}' not found.",
         )
     return EvalRunDetailResponse.model_validate(run)
+
+
+@router.post(
+    "/suites/{suite_id}/execute",
+    response_model=EvalRunDetailResponse,
+    summary="Execute evaluation suite against an agent version",
+)
+async def execute_eval_suite(
+    suite_id: uuid.UUID,
+    db: DbSession,
+    agent_version_id: Annotated[uuid.UUID | None, Query(description="Target version UUID")] = None,
+    trigger: Annotated[str, Query(description="Trigger identifier")] = "manual",
+) -> EvalRunDetailResponse:
+    """Execute all test cases in an eval suite against the agent version."""
+    from governance.evals.engine import default_eval_engine
+
+    try:
+        run = await default_eval_engine.execute_suite(
+            db=db,
+            suite_id=suite_id,
+            agent_version_id=agent_version_id,
+            trigger=trigger,
+        )
+        return EvalRunDetailResponse.model_validate(run)
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        ) from err

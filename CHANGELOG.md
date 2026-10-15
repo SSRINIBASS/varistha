@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Phase 4 — Evals & Confidence
 
 #### Added
+- `apps/api/src/governance/evals/evaluators/`: Builtin evaluator library implementing the `BaseEvaluator` contract:
+  - `ExactMatchEvaluator`: Strict value and whitespace-stripped deep equality assertions.
+  - `ContainsEvaluator`: Substring, dictionary key-value, and list element presence verification.
+  - `RegexEvaluator`: Pattern-matching assertions with graceful error detection.
+  - `JsonSchemaEvaluator`: Structural dictionary and JSON-string conformity validation via `jsonschema`.
+  - `GroundingEvaluator`: Keyword and citation overlap ratio calculation against input context.
+  - `LLMRubricEvaluator`: LLM-as-a-judge scoring and rationale parsing using LiteLLM model gateways.
+  - `create_evaluator`: Dynamic evaluator instantiation factory from declarative suite configurations.
+- `apps/api/src/governance/evals/engine.py`: `EvalExecutionEngine` executing test cases against target agent specifications, applying matching evaluators, computing aggregate pass rates, and persisting granular `eval_results`.
+- `apps/api/src/governance/evals/router.py`: REST endpoint `POST /api/v1/evals/suites/{id}/execute` to trigger offline evaluation runs.
+- `packages/cli/src/varistha_cli/commands/eval_cmd.py`: CLI evaluation commands:
+  - `varistha eval list [--agent <agent>] [--json]`: Lists registered evaluation suites.
+  - `varistha eval run <suite_id_or_file> [--version <version>] [--json]`: Runs offline evaluations from database suite UUID or local YAML spec file, rendering a formatted Rich summary panel and granular assertion table. Exits with code 1 if pass rate falls below 80%.
+- `docs/adr/0018-eval-execution-engine-and-evaluators.md`: Architecture Decision Record for eval execution engine, evaluators library, and CLI.
+- `docs/plans/phase-4-task-2-eval-execution-engine.md`: Task plan and acceptance criteria verification.
 - `packages/spec/src/eval_models.py`: Declarative Pydantic schema for `varistha/v1 EvalSuite` with `EvaluatorConfig` (exact-match, contains, regex, json-schema, semantic-similarity, llm-rubric) and `TestCaseConfig` datasets.
 - `apps/api/src/shared/db/models/eval.py`: SQLAlchemy models `EvalSuite`, `EvalRun`, and `EvalResult` with cascade deletions and JSON/JSONB support.
 - `apps/api/alembic/versions/0005_evals.py`: Database migration creating `eval_suites`, `eval_runs`, and `eval_results` tables and indexes.

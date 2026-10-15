@@ -539,3 +539,97 @@ def display_policy_test_result(result: dict[str, Any]) -> None:
                 border_style="green",
             )
         )
+
+
+def display_eval_suites_table(suites: list[dict[str, Any]], total: int) -> None:
+    """Display table of evaluation suites."""
+    table = Table(title=f"Evaluation Suites ({total})", box=ROUNDED, header_style="bold cyan")
+    table.add_column("Suite ID", style="dim", no_wrap=True)
+    table.add_column("Suite Name", style="bold", no_wrap=True)
+    table.add_column("Agent ID", style="dim", no_wrap=True)
+    table.add_column("Type", style="cyan", no_wrap=True)
+    table.add_column("Cases", justify="right")
+    table.add_column("Evaluators", justify="right")
+    table.add_column("Updated", style="dim")
+
+    for s in suites:
+        cfg = s.get("config", {}) or {}
+        cases = len(cfg.get("cases", []))
+        evaluators = len(cfg.get("evaluators", []))
+        table.add_row(
+            str(s.get("id", ""))[:8] + "...",
+            str(s.get("name", "-")),
+            str(s.get("agent_id", ""))[:8] + "...",
+            str(s.get("eval_type", "offline")),
+            str(cases),
+            str(evaluators),
+            str(s.get("updated_at", "-"))[:19],
+        )
+
+    console.print(table)
+
+
+def display_eval_run_result(run_data: dict[str, Any]) -> None:
+    """Display evaluation run assertions and summary badge."""
+    run_id = str(run_data.get("id", "-"))
+    suite_id = str(run_data.get("suite_id", "-"))
+    status_str = str(run_data.get("status", "completed")).upper()
+    total_cases = run_data.get("total_cases", 0)
+    passed_cases = run_data.get("passed_cases", 0)
+    pass_rate = run_data.get("pass_rate")
+    duration_ms = run_data.get("duration_ms", 0)
+
+    pass_rate_str = f"{pass_rate * 100:.1f}%" if pass_rate is not None else "0.0%"
+    is_success = status_str == "COMPLETED" and (pass_rate is not None and pass_rate >= 0.8)
+    badge_style = "bold green" if is_success else "bold red"
+    border_style = "green" if is_success else "red"
+
+    summary_table = Table(show_header=False, box=None, padding=(0, 2))
+    summary_table.add_column("Key", style="dim")
+    summary_table.add_column("Value", style="bold")
+    summary_table.add_row("Run ID", run_id)
+    summary_table.add_row("Suite ID", suite_id)
+    summary_table.add_row("Status", f"[{badge_style}]{status_str}[/{badge_style}]")
+    summary_table.add_row("Pass Rate", f"[{badge_style}]{pass_rate_str}[/{badge_style}]")
+    summary_table.add_row("Assertions", f"{passed_cases} / {total_cases} passed")
+    summary_table.add_row("Duration", f"{duration_ms} ms")
+
+    console.print(
+        Panel(
+            summary_table,
+            title=f"[{badge_style}]Offline Evaluation Summary[/{badge_style}]",
+            box=ROUNDED,
+            border_style=border_style,
+        )
+    )
+
+    results = run_data.get("results", [])
+    if results:
+        res_table = Table(title="Assertion Results", box=ROUNDED, header_style="bold cyan")
+        res_table.add_column("Case", style="bold")
+        res_table.add_column("Evaluator")
+        res_table.add_column("Type", style="dim")
+        res_table.add_column("Outcome", justify="center")
+        res_table.add_column("Score", justify="right")
+        res_table.add_column("Latency", justify="right", style="dim")
+        res_table.add_column("Failure / Note")
+
+        for r in results:
+            passed = r.get("passed", False)
+            outcome = "[bold green]PASS[/bold green]" if passed else "[bold red]FAIL[/bold red]"
+            score = f"{r.get('score', 0.0):.2f}"
+            latency = f"{r.get('latency_ms', 0)}ms"
+            fail_reason = r.get("failure_reason") or "-"
+            fail_reason = f"[red]{fail_reason}[/red]" if not passed else f"[dim]{fail_reason}[/dim]"
+
+            res_table.add_row(
+                str(r.get("case_name") or r.get("case_id")),
+                str(r.get("evaluator_name")),
+                str(r.get("evaluator_type")),
+                outcome,
+                score,
+                latency,
+                fail_reason,
+            )
+
+        console.print(res_table)
