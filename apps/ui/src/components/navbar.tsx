@@ -108,7 +108,7 @@ export function Navbar() {
           </div>
 
           <a
-            href="https://github.com/amydgylla/varistha"
+            href="https://github.com/SSRINIBASS/varistha"
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"

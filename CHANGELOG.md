@@ -135,4 +135,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `deploy/.env.example` — documented environment variables
 - `scripts/check_boundaries.py` — architecture boundary enforcement
 
-[Unreleased]: https://github.com/your-org/varistha/compare/HEAD...HEAD
+[Unreleased]: https://github.com/SSRINIBASS/varistha/compare/HEAD...HEAD

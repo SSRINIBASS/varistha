@@ -15,7 +15,7 @@ Varistha is a self-hostable control plane where a startup installs AI employees 
 ## Quick Start
 
 ```bash
-git clone https://github.com/your-org/varistha.git
+git clone https://github.com/SSRINIBASS/varistha.git
 cd varistha
 cp deploy/.env.example deploy/.env
 docker compose -f deploy/docker-compose.yml up
