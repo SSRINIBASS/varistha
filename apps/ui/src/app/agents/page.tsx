@@ -105,7 +105,7 @@ export default function AgentsPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/lifecycle"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors cursor-pointer shadow-xs"
+            className="gh-btn-secondary"
             title="Switch to Lifecycle Kanban view"
           >
             <Layers className="w-3.5 h-3.5 text-muted-foreground" />
@@ -115,7 +115,7 @@ export default function AgentsPage() {
             type="button"
             onClick={fetchAgentList}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors cursor-pointer"
+            className="gh-btn-secondary"
             title="Refresh agents"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -124,16 +124,59 @@ export default function AgentsPage() {
         </div>
       </div>
 
+      {/* GitHub Bento Stat Widgets */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="gh-bento p-3 space-y-1">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-[11px] font-medium">Total Registered</span>
+            <Bot className="w-3.5 h-3.5" />
+          </div>
+          <div className="text-xl font-bold tracking-tight text-foreground font-mono">
+            {agents.length}
+          </div>
+        </div>
+
+        <div className="gh-bento p-3 space-y-1">
+          <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+            <span className="text-[11px] font-medium">Production Live</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-xs animate-pulse" />
+          </div>
+          <div className="text-xl font-bold tracking-tight text-foreground font-mono">
+            {agents.filter((a) => a.stage === "production").length}
+          </div>
+        </div>
+
+        <div className="gh-bento p-3 space-y-1">
+          <div className="flex items-center justify-between text-purple-600 dark:text-purple-400">
+            <span className="text-[11px] font-medium">Staging Candidate</span>
+            <span className="w-2 h-2 rounded-full bg-purple-500" />
+          </div>
+          <div className="text-xl font-bold tracking-tight text-foreground font-mono">
+            {agents.filter((a) => a.stage === "staging").length}
+          </div>
+        </div>
+
+        <div className="gh-bento p-3 space-y-1">
+          <div className="flex items-center justify-between text-blue-600 dark:text-blue-400">
+            <span className="text-[11px] font-medium">Prototype / Draft</span>
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
+          </div>
+          <div className="text-xl font-bold tracking-tight text-foreground font-mono">
+            {agents.filter((a) => a.stage === "prototype" || a.stage === "draft").length}
+          </div>
+        </div>
+      </div>
+
       {/* Filters and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
         <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search agents by name or role..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-input bg-card text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
+            className="w-full pl-8 pr-3 py-1.5 rounded-md border border-border bg-card text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
           />
         </div>
 
@@ -145,7 +188,7 @@ export default function AgentsPage() {
               onClick={() => setSelectedStage(st)}
               className={`px-3 py-1 rounded-md text-xs font-medium capitalize transition-colors cursor-pointer ${
                 selectedStage === st
-                  ? "bg-secondary text-secondary-foreground font-semibold shadow-xs"
+                  ? "bg-secondary text-secondary-foreground font-semibold shadow-2xs border border-border"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
             >
@@ -252,16 +295,16 @@ export default function AgentsPage() {
                       <div className="flex items-center justify-end gap-1.5">
                         <Link
                           href={`/runs?agent_id=${agent.id}`}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border border-border bg-card text-foreground hover:bg-muted/80 transition-colors shadow-2xs"
+                          className="gh-btn-secondary h-6 px-2 text-[11px]"
                           title="View execution runs"
                         >
-                          <Activity className="w-3.5 h-3.5 text-muted-foreground" />
+                          <Activity className="w-3 h-3 text-muted-foreground" />
                           <span>Runs</span>
                         </Link>
                         <button
                           type="button"
                           onClick={() => setActiveModalAgent(agent)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:brightness-110 transition-all cursor-pointer shadow-2xs"
+                          className="gh-btn-primary h-6 px-2 text-[11px]"
                           title="Execute run"
                         >
                           <Play className="w-3 h-3 fill-current" />

@@ -224,7 +224,7 @@ export function Navbar() {
                 <span>{item.label}</span>
                 {item.counter && (
                   <span
-                    className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-mono font-medium ${
+                    className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium ${
                       isActive
                         ? "bg-secondary text-secondary-foreground border border-border"
                         : "bg-muted text-muted-foreground"

@@ -151,42 +151,40 @@ export function PromoteModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
-      <div className="relative w-full max-w-xl max-h-[90vh] flex flex-col rounded-xl border border-border bg-card shadow-2xl text-card-foreground overflow-hidden">
+      <div className="gh-modal max-w-xl max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+        <div className="gh-box-header px-6 py-3.5">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
+            <ShieldCheck className="w-4 h-4 text-primary" />
             <div>
-              <h2 className="text-lg font-semibold tracking-tight text-foreground">
-                Lifecycle Stage Promotion
+              <h2 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
+                <span>Lifecycle Stage Transition</span>
+                <span className="font-mono text-xs font-normal text-muted-foreground">
+                  {agent.name}
+                </span>
               </h2>
-              <p className="text-xs text-muted-foreground">
-                Agent: <span className="font-mono text-foreground font-semibold">{agent.name}</span>
-              </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="gh-btn-subtle p-1"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
           {/* Transition Visualizer */}
-          <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
+          <div className="flex items-center justify-between p-3 rounded-md border border-border bg-muted/40">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Current:</span>
+              <span className="text-xs font-medium text-muted-foreground">Current:</span>
               <StageBadge stage={agent.stage} />
             </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
+            <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Target:</span>
+              <span className="text-xs font-medium text-muted-foreground">Target:</span>
               <StageBadge stage={targetStage} />
             </div>
           </div>
@@ -194,7 +192,7 @@ export function PromoteModal({
           {/* Target Stage Selector */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-              Target Stage
+              Select Target Stage
             </label>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
               {STAGES.map((s) => {
@@ -206,12 +204,12 @@ export function PromoteModal({
                     type="button"
                     disabled={isCurrent}
                     onClick={() => setTargetStage(s)}
-                    className={`px-2 py-1.5 text-xs font-medium rounded-lg border text-center capitalize transition-all ${
+                    className={`px-2 py-1.5 text-xs font-medium rounded-md border text-center capitalize transition-all cursor-pointer ${
                       isSelected
-                        ? "border-primary bg-primary text-primary-foreground shadow-xs font-bold"
+                        ? "bg-primary text-primary-foreground border-primary font-bold shadow-xs"
                         : isCurrent
                         ? "opacity-40 border-border bg-muted text-muted-foreground cursor-not-allowed"
-                        : "border-border hover:bg-muted/60 text-foreground"
+                        : "border-border bg-card text-foreground hover:bg-muted"
                     }`}
                   >
                     {s}
@@ -223,7 +221,7 @@ export function PromoteModal({
 
           {/* Rollback Alert */}
           {isRollback && (
-            <div className="flex items-start gap-2.5 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs">
+            <div className="flex items-start gap-2.5 p-3 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs">
               <RotateCcw className="w-4 h-4 mt-0.5 shrink-0" />
               <div>
                 <span className="font-semibold">Demotion / Rollback Notice:</span> Moving backward
@@ -234,7 +232,7 @@ export function PromoteModal({
           )}
 
           {/* Gate Verification Checklist */}
-          <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+          <div className="gh-box p-3.5 space-y-2.5">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <span>Programmatic Gate Verification</span>
@@ -242,10 +240,10 @@ export function PromoteModal({
               </h3>
               {evaluation && (
                 <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
                     evaluation.allowed
-                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                      : "bg-destructive/10 text-destructive border border-destructive/20"
+                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                      : "bg-destructive/15 text-destructive border border-destructive/30"
                   }`}
                 >
                   {evaluation.allowed ? "All Gates Passed" : "Gates Unsatisfied"}
@@ -258,19 +256,19 @@ export function PromoteModal({
             )}
 
             {evaluation && evaluation.checks.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {evaluation.checks.map((check) => (
                   <div
                     key={check.name}
-                    className="flex items-start gap-2 text-xs p-2 rounded-md bg-muted/30 border border-border/50"
+                    className="flex items-start gap-2 text-xs p-2 rounded-md bg-muted/40 border border-border/50"
                   >
                     {check.passed ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
                     ) : (
-                      <XCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                      <XCircle className="w-3.5 h-3.5 text-destructive mt-0.5 shrink-0" />
                     )}
-                    <div className="flex-1">
-                      <span className="font-mono font-medium text-foreground">
+                    <div className="flex-1 min-w-0">
+                      <span className="font-mono font-medium text-foreground text-xs">
                         {check.name}
                       </span>
                       <p className="text-muted-foreground text-[11px] mt-0.5">
@@ -288,7 +286,7 @@ export function PromoteModal({
           {/* Operator Affirmations & Options */}
           <div className="space-y-3">
             {targetStage === "production" && (
-              <label className="flex items-start gap-2.5 p-3 rounded-lg border border-border bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors">
+              <label className="flex items-start gap-2.5 p-2.5 rounded-md border border-border bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors">
                 <input
                   type="checkbox"
                   checked={killSwitchVerified}
@@ -313,13 +311,13 @@ export function PromoteModal({
                   placeholder="e.g. lead-researcher-v2"
                   value={replacement}
                   onChange={(e) => setReplacement(e.target.value)}
-                  className="w-full text-xs rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary font-mono"
+                  className="gh-input w-full font-mono text-xs"
                 />
               </div>
             )}
 
             {targetStage === "retired" && (
-              <label className="flex items-start gap-2.5 p-3 rounded-lg border border-border bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors">
+              <label className="flex items-start gap-2.5 p-2.5 rounded-md border border-border bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors">
                 <input
                   type="checkbox"
                   checked={secretsRevoked}
@@ -343,7 +341,7 @@ export function PromoteModal({
                 required
                 value={promotedBy}
                 onChange={(e) => setPromotedBy(e.target.value)}
-                className="w-full text-xs rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
+                className="gh-input w-full"
               />
             </div>
 
@@ -356,13 +354,13 @@ export function PromoteModal({
                 placeholder={isRollback ? "Required explanation for demoting this agent..." : "Optional rationale for the audit record..."}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full text-xs rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary resize-none"
+                className="gh-input w-full resize-none font-sans"
               />
             </div>
           </div>
 
           {submitError && (
-            <div className="flex items-center gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-xs">
+            <div className="flex items-center gap-2 p-2.5 rounded-md border border-destructive/30 bg-destructive/10 text-destructive text-xs">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{submitError}</span>
             </div>
@@ -374,17 +372,19 @@ export function PromoteModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="gh-btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting || (!evaluation?.allowed && !isRollback) || (isRollback && !reason.trim())}
-              className={`inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all shadow-xs cursor-pointer ${
                 (!evaluation?.allowed && !isRollback) || (isRollback && !reason.trim())
                   ? "bg-muted text-muted-foreground cursor-not-allowed border border-border"
-                  : "bg-primary text-primary-foreground hover:opacity-90 shadow-xs"
+                  : isRollback
+                  ? "gh-btn-danger"
+                  : "gh-btn-primary"
               }`}
             >
               {submitting ? (

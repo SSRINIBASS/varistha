@@ -7,17 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -41,7 +33,7 @@
 }
 
 /* =============================================================================
- * GitHub Primer Design Tokens
+ * GitHub Primer Design Tokens & Theme Variables
  * ============================================================================= */
 
 /* Light Theme (GitHub Light Default) */
@@ -62,12 +54,17 @@
   --accent-foreground: #0969da; /* Primer Blue Link */
   --destructive: #cf222e; /* Primer Danger Red */
   --border: #d0d7de; /* Primer Default Border */
+  --border-muted: #eaeef2;
   --input: #d0d7de;
   --ring: #0969da;
   --radius: 0.375rem;
   --header-bg: #f6f8fa;
   --header-border: #d0d7de;
   --tab-active-border: #fd8c73;
+  --shadow-resting: 0 1px 0 rgba(27, 31, 36, 0.04);
+  --shadow-card: 0 1px 3px rgba(27, 31, 36, 0.08), 0 8px 24px rgba(66, 74, 83, 0.04);
+  --shadow-bento: 0 0 0 1px #d0d7de, 0 4px 16px rgba(0, 0, 0, 0.06);
+  --ambient-glow: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(9, 105, 218, 0.04), transparent 70%);
 }
 
 /* Dark Theme (GitHub Dark Default) */
@@ -88,35 +85,138 @@
   --accent-foreground: #58a6ff; /* Primer Dark Blue Link */
   --destructive: #f85149; /* Primer Dark Danger Red */
   --border: #30363d; /* Primer Dark Border */
+  --border-muted: #21262d;
   --input: #30363d;
   --ring: #58a6ff;
   --header-bg: #010409; /* Primer Dark Inset Header */
   --header-border: #30363d;
   --tab-active-border: #f78166;
+  --shadow-resting: 0 1px 0 rgba(1, 4, 9, 0.4);
+  --shadow-card: 0 1px 3px rgba(1, 4, 9, 0.5), 0 8px 24px rgba(1, 4, 9, 0.25);
+  --shadow-bento: 0 0 0 1px #30363d, 0 8px 24px rgba(1, 4, 9, 0.6);
+  --ambient-glow: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 139, 253, 0.08), transparent 70%);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  ::selection {
+    background-color: rgba(56, 139, 253, 0.28);
+    color: inherit;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -1px;
+  }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+    background-image: var(--ambient-glow);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    letter-spacing: -0.01em;
   }
   html {
-    @apply font-sans;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  }
+  code, pre, kbd, samp {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   }
 }
 
-/* GitHub-specific design primitives */
+/* =============================================================================
+ * GitHub Primer Component Primitives & Bento Utilities
+ * ============================================================================= */
+
+/* GitHub Box */
 .gh-box {
-  @apply rounded-md border border-border bg-card overflow-hidden;
+  @apply rounded-md border border-border bg-card overflow-hidden shadow-xs;
 }
 
 .gh-box-header {
   @apply bg-muted/60 border-b border-border px-4 py-2.5 font-semibold text-xs flex items-center justify-between text-foreground;
 }
 
+.gh-box-row {
+  @apply border-b border-border/60 hover:bg-muted/30 transition-colors;
+}
+
+/* GitHub Bento Box */
+.gh-bento {
+  @apply rounded-md border border-border bg-card/90 p-4 transition-all duration-200;
+  box-shadow: var(--shadow-card);
+}
+
+.gh-bento:hover {
+  @apply border-foreground/30;
+  box-shadow: var(--shadow-bento);
+}
+
+.gh-bento-hero {
+  @apply rounded-md border border-border bg-gradient-to-br from-card via-card to-muted/50 p-5 transition-all duration-200;
+  box-shadow: var(--shadow-card);
+}
+
+/* GitHub Counter Badge */
 .gh-counter {
-  @apply inline-flex items-center justify-center px-1.5 py-0.5 text-[11px] font-semibold rounded-full bg-muted border border-border text-muted-foreground leading-none;
+  @apply inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-muted border border-border text-muted-foreground leading-none;
+}
+
+/* GitHub Buttons */
+.gh-btn-primary {
+  @apply inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground hover:brightness-110 active:scale-[0.98] transition-all shadow-xs cursor-pointer;
+}
+
+.gh-btn-secondary {
+  @apply inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border border-border bg-card text-foreground hover:bg-muted active:scale-[0.98] transition-all shadow-xs cursor-pointer;
+}
+
+.gh-btn-danger {
+  @apply inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-destructive text-white hover:brightness-110 active:scale-[0.98] transition-all shadow-xs cursor-pointer;
+}
+
+.gh-btn-subtle {
+  @apply inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer;
+}
+
+/* GitHub Inputs */
+.gh-input {
+  @apply rounded-md border border-border bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-[var(--ring)] focus:ring-1 focus:ring-[var(--ring)] transition-colors;
+}
+
+/* GitHub UnderlineNav */
+.gh-tab {
+  @apply flex items-center gap-2 px-3.5 py-2.5 border-b-2 border-transparent text-muted-foreground hover:text-foreground hover:border-border transition-all whitespace-nowrap text-xs font-medium cursor-pointer;
+}
+
+.gh-tab-active {
+  @apply border-b-2 border-[#fd8c73] dark:border-[#f78166] text-foreground font-semibold;
+}
+
+/* GitHub Modal / Dialog Overlay */
+.gh-modal {
+  @apply relative w-full flex flex-col rounded-md border border-border bg-card text-card-foreground shadow-2xl overflow-hidden;
+  box-shadow: 0 16px 32px rgba(1, 4, 9, 0.85);
+}
+
+/* GitHub Menu / ActionMenu Dropdown */
+.gh-menu {
+  @apply rounded-md border border-border bg-card p-1 text-foreground z-50;
+  box-shadow: var(--shadow-bento);
+}
+
+.gh-menu-item {
+  @apply flex items-center justify-between w-full px-2.5 py-1.5 rounded-sm text-xs text-foreground hover:bg-muted transition-colors cursor-pointer;
+}
+
+/* GitHub Diff Line Highlighting */
+.gh-diff-add {
+  background-color: rgba(46, 160, 67, 0.12);
+  border-left: 3px solid #2da44e;
+}
+
+.gh-diff-delete {
+  background-color: rgba(248, 81, 73, 0.12);
+  border-left: 3px solid #cf222e;
 }

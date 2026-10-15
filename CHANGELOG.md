@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### UI & UX — GitHub Primer Design System & Theme Engine
+
+#### Added
+- Full-span responsive widescreen layout eliminating artificial `max-w-7xl` constraints, expanding Kanban board and tables to 100% monitor viewport.
+- Official GitHub Primer design tokens for Light and Dark themes, including atmospheric ambient glow gradients, multi-layer elevation shadows, and GitHub font stack (`-apple-system`, `ui-monospace`).
+- React 19 `useSyncExternalStore` theme provider with lazy `localStorage` initialization and inline anti-FOUC `<head>` script.
+- GitHub `ActionMenu` styled `ThemeToggle` dropdown supporting Light, Dark, and System preference synchronization.
+- GitHub repository navigation bar featuring `varistha / control-plane` breadcrumb, `/` command search bar, `API Online` pulse pill, and UnderlineNav with signature coral active indicator (`#fd8c73` / `#f78166`).
+- GitHub Bento card architecture (`.gh-bento`, `.gh-bento-hero`, `.gh-box`, `.gh-counter`, `.gh-btn-primary`, `.gh-btn-secondary`, `.gh-btn-danger`, `.gh-btn-subtle`).
+- GitHub Actions workflow run styling for `/runs` with real-time status icons, token counts, and cost telemetry.
+- GitHub Pull Request styled Spec Diff Viewer with `gh-diff-add`/`gh-diff-delete` row highlights, base/compare branch pickers, and monospace values.
+- `docs/adr/0012-github-primer-design-system.md`: Architectural Decision Record for GitHub Primer design system.
+- `docs/checkpoints/2026-10-15-github-primer-ui-redesign.md`: Checkpoint log with end-to-end browser verification proofs.
+
 ### Phase 2 — Registry and Lifecycle
 
 #### Added

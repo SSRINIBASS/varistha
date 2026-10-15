@@ -37,8 +37,8 @@ export function ThemeToggle() {
       </button>
 
       {menuOpen && (
-        <div className="absolute right-0 mt-1.5 w-36 rounded-md border border-border bg-popover text-popover-foreground shadow-lg py-1 z-50 text-xs animate-in fade-in-50 zoom-in-95">
-          <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border mb-1">
+        <div className="gh-menu absolute right-0 mt-1.5 w-36 py-1 z-50 text-xs animate-in fade-in-50 zoom-in-95">
+          <div className="px-2.5 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/60 mb-1">
             Appearance
           </div>
 
@@ -48,8 +48,8 @@ export function ThemeToggle() {
               setTheme("light");
               setMenuOpen(false);
             }}
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 hover:bg-muted/70 transition-colors text-left cursor-pointer ${
-              theme === "light" ? "text-primary font-semibold" : "text-foreground"
+            className={`gh-menu-item ${
+              theme === "light" ? "text-primary font-semibold" : ""
             }`}
           >
             <span className="flex items-center gap-2">
@@ -65,8 +65,8 @@ export function ThemeToggle() {
               setTheme("dark");
               setMenuOpen(false);
             }}
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 hover:bg-muted/70 transition-colors text-left cursor-pointer ${
-              theme === "dark" ? "text-primary font-semibold" : "text-foreground"
+            className={`gh-menu-item ${
+              theme === "dark" ? "text-primary font-semibold" : ""
             }`}
           >
             <span className="flex items-center gap-2">
@@ -82,8 +82,8 @@ export function ThemeToggle() {
               setTheme("system");
               setMenuOpen(false);
             }}
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 hover:bg-muted/70 transition-colors text-left cursor-pointer ${
-              theme === "system" ? "text-primary font-semibold" : "text-foreground"
+            className={`gh-menu-item ${
+              theme === "system" ? "text-primary font-semibold" : ""
             }`}
           >
             <span className="flex items-center gap-2">

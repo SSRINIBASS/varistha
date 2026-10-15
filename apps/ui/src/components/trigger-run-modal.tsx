@@ -57,36 +57,38 @@ export function TriggerRunModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="relative w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-xl text-card-foreground animate-in fade-in zoom-in-95 duration-150">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <div className="flex items-center gap-2.5 mb-1">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
-            <Play className="w-4 h-4" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+      <div className="gh-modal max-w-lg">
+        {/* Header */}
+        <div className="gh-box-header px-6 py-3.5">
+          <div className="flex items-center gap-2">
+            <Play className="w-4 h-4 text-primary fill-primary" />
+            <div>
+              <h3 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
+                <span>Run Agent Workflow</span>
+                <span className="font-mono text-xs font-normal text-muted-foreground">
+                  {agent.name} (v{agent.current_version})
+                </span>
+              </h3>
+            </div>
           </div>
-          <div>
-            <h3 className="text-base font-semibold leading-tight">Trigger Agent Run</h3>
-            <p className="text-xs text-muted-foreground">
-              Agent: <span className="font-mono font-medium text-foreground">{agent.name}</span> (v{agent.current_version})
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="gh-btn-subtle p-1"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {error && (
-          <div className="mt-4 p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-xs flex items-start gap-2">
+          <div className="m-4 mb-0 p-3 rounded-md border border-destructive/30 bg-destructive/10 text-destructive text-xs flex items-start gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span className="flex-1">{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleExecute} className="mt-4 space-y-4">
+        <form onSubmit={handleExecute} className="p-6 space-y-4">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
               Trigger Type
@@ -94,7 +96,7 @@ export function TriggerRunModal({
             <select
               value={triggerType}
               onChange={(e) => setTriggerType(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm text-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
+              className="gh-input w-full"
             >
               <option value="manual">manual (Developer or UI trigger)</option>
               <option value="schedule">schedule (Scheduled Cron trigger)</option>
@@ -116,23 +118,23 @@ export function TriggerRunModal({
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={'{\n  "task": "..."\n}'}
-              className="w-full px-3 py-2 rounded-lg border border-input bg-background font-mono text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
+              className="gh-input w-full font-mono text-xs resize-none"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/60">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 rounded-lg text-xs font-medium border border-border text-foreground hover:bg-muted transition-colors cursor-pointer"
+              className="gh-btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+              className="gh-btn-primary"
             >
               {loading ? (
                 <>
@@ -141,8 +143,8 @@ export function TriggerRunModal({
                 </>
               ) : (
                 <>
-                  <Play className="w-3.5 h-3.5" />
-                  <span>Run Now</span>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Run Workflow</span>
                 </>
               )}
             </button>

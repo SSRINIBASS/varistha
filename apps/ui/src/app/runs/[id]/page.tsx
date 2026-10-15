@@ -130,7 +130,7 @@ function RunDetailInner({ params }: RunDetailPageProps) {
       <div>
         <Link
           href="/runs"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          className="gh-btn-secondary h-7 px-2.5 text-xs inline-flex"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Runs</span>
@@ -138,7 +138,7 @@ function RunDetailInner({ params }: RunDetailPageProps) {
       </div>
 
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-border/60">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground font-mono">
@@ -154,7 +154,7 @@ function RunDetailInner({ params }: RunDetailPageProps) {
         <button
           type="button"
           onClick={fetchRunData}
-          className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors cursor-pointer"
+          className="gh-btn-secondary self-start sm:self-auto"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>Refresh</span>
@@ -163,8 +163,8 @@ function RunDetailInner({ params }: RunDetailPageProps) {
 
       {/* Error Callout if Run Failed */}
       {run.error && (
-        <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-500" />
+        <div className="p-3.5 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300 flex items-start gap-3">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
           <div className="text-xs space-y-1">
             <div className="font-semibold text-rose-600 dark:text-rose-400">Execution Error</div>
             <div className="font-mono break-all">{run.error}</div>
@@ -172,19 +172,19 @@ function RunDetailInner({ params }: RunDetailPageProps) {
         </div>
       )}
 
-      {/* Metric Cards Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-border/80 bg-card shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mb-1">
-            <Clock className="w-4 h-4 text-primary" />
+      {/* Metric Cards Bento Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+        <div className="gh-bento">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+            <Clock className="w-3.5 h-3.5 text-primary" />
             <span>Duration</span>
           </div>
           <div className="text-lg font-bold font-mono text-foreground">{durationStr}</div>
         </div>
 
-        <div className="p-4 rounded-xl border border-border/80 bg-card shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mb-1">
-            <Cpu className="w-4 h-4 text-sky-500" />
+        <div className="gh-bento">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+            <Cpu className="w-3.5 h-3.5 text-sky-500" />
             <span>Total Tokens</span>
           </div>
           <div className="text-lg font-bold font-mono text-foreground">
@@ -192,9 +192,9 @@ function RunDetailInner({ params }: RunDetailPageProps) {
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-border/80 bg-card shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mb-1">
-            <Coins className="w-4 h-4 text-emerald-500" />
+        <div className="gh-bento">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+            <Coins className="w-3.5 h-3.5 text-emerald-500" />
             <span>Cost (USD)</span>
           </div>
           <div className="text-lg font-bold font-mono text-foreground">
@@ -202,9 +202,9 @@ function RunDetailInner({ params }: RunDetailPageProps) {
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-border/80 bg-card shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mb-1">
-            <Layers className="w-4 h-4 text-indigo-500" />
+        <div className="gh-bento">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-1">
+            <Layers className="w-3.5 h-3.5 text-indigo-500" />
             <span>Telemetry Spans</span>
           </div>
           <div className="text-lg font-bold font-mono text-foreground">
@@ -215,7 +215,7 @@ function RunDetailInner({ params }: RunDetailPageProps) {
 
       {/* OpenTelemetry Waterfall Timeline */}
       <div className="space-y-3">
-        <h2 className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
+        <h2 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
           <Layers className="w-4 h-4 text-primary" />
           <span>OpenTelemetry Trace Waterfall</span>
         </h2>
@@ -225,23 +225,29 @@ function RunDetailInner({ params }: RunDetailPageProps) {
       {/* Inputs and Outputs Inspection */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
         {/* Input Card */}
-        <div className="p-4 rounded-xl border border-border/80 bg-card space-y-2 shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <Terminal className="w-3.5 h-3.5" />
-            <span>Run Input Payload</span>
+        <div className="gh-box">
+          <div className="gh-box-header px-4 py-2">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+              <Terminal className="w-3.5 h-3.5 text-muted-foreground" />
+              <span>Run Input Payload</span>
+            </div>
+            <span className="text-[11px] font-mono text-muted-foreground">JSON</span>
           </div>
-          <pre className="p-3 rounded-lg bg-muted/40 font-mono text-xs overflow-x-auto text-foreground max-h-60">
+          <pre className="p-3 bg-card font-mono text-xs overflow-x-auto text-foreground max-h-60">
             {JSON.stringify(run.input || {}, null, 2)}
           </pre>
         </div>
 
         {/* Output Card */}
-        <div className="p-4 rounded-xl border border-border/80 bg-card space-y-2 shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <Code2 className="w-3.5 h-3.5" />
-            <span>Run Output Result</span>
+        <div className="gh-box">
+          <div className="gh-box-header px-4 py-2">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+              <Code2 className="w-3.5 h-3.5 text-muted-foreground" />
+              <span>Run Output Result</span>
+            </div>
+            <span className="text-[11px] font-mono text-muted-foreground">JSON</span>
           </div>
-          <pre className="p-3 rounded-lg bg-muted/40 font-mono text-xs overflow-x-auto text-foreground max-h-60">
+          <pre className="p-3 bg-card font-mono text-xs overflow-x-auto text-foreground max-h-60">
             {JSON.stringify(run.output || {}, null, 2)}
           </pre>
         </div>

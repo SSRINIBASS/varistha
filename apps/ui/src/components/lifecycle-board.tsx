@@ -229,6 +229,41 @@ export function LifecycleBoard({ initialAgents }: LifecycleBoardProps) {
         </div>
       </div>
 
+      {/* GitHub Bento Stage Summary Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+        {STAGE_COLUMNS.map((col) => {
+          const count = agentsByStage[col.stage]?.length || 0;
+          return (
+            <div
+              key={`summary-${col.stage}`}
+              className="flex items-center justify-between p-2.5 rounded-md border border-border bg-card/60 shadow-2xs hover:border-foreground/30 transition-colors"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    col.stage === "draft"
+                      ? "bg-zinc-400"
+                      : col.stage === "prototype"
+                      ? "bg-blue-500"
+                      : col.stage === "staging"
+                      ? "bg-purple-500"
+                      : col.stage === "production"
+                      ? "bg-emerald-500"
+                      : col.stage === "deprecated"
+                      ? "bg-amber-500"
+                      : "bg-slate-500"
+                  }`}
+                />
+                <span className="text-xs font-semibold text-foreground truncate">
+                  {col.label} Stage
+                </span>
+              </div>
+              <span className="gh-counter shrink-0">{count}</span>
+            </div>
+          );
+        })}
+      </div>
+
       {error && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-xs text-destructive flex items-center justify-between">
           <span>{error}</span>
@@ -262,14 +297,14 @@ export function LifecycleBoard({ initialAgents }: LifecycleBoardProps) {
               return (
                 <div
                   key={col.stage}
-                  className="flex flex-col rounded-lg border border-border bg-card/60 shadow-2xs min-h-[550px]"
+                  className="flex flex-col rounded-md border border-border bg-card/60 shadow-2xs min-h-[550px]"
                 >
                   {/* Column Header */}
-                  <div className="p-3.5 border-b border-border bg-muted/30 rounded-t-xl space-y-1.5">
+                  <div className="p-3 border-b border-border bg-muted/40 rounded-t-md space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <StageBadge stage={col.stage} />
-                        <span className="text-xs font-mono font-semibold px-1.5 py-0.2 rounded-full bg-background border border-border text-foreground">
+                        <span className="gh-counter">
                           {stageAgents.length}
                         </span>
                       </div>
@@ -282,11 +317,11 @@ export function LifecycleBoard({ initialAgents }: LifecycleBoardProps) {
                     </p>
                   </div>
 
-                  {/* Column Body / Agent Cards */}
+                  {/* Column Body / Agent Bento Cards */}
                   <div className="p-2.5 flex-1 space-y-2.5 overflow-y-auto max-h-[calc(100vh-250px)]">
                     {stageAgents.length === 0 ? (
-                      <div className="py-12 px-3 flex flex-col items-center justify-center text-center gap-2 border border-dashed border-border rounded-lg bg-muted/10">
-                        <Icon className="w-5 h-5 text-muted-foreground/60" />
+                      <div className="py-12 px-3 flex flex-col items-center justify-center text-center gap-2 border border-dashed border-border rounded-md bg-muted/10">
+                        <Icon className="w-5 h-5 text-muted-foreground/50" />
                         <span className="text-xs text-muted-foreground font-medium">
                           No {col.label} agents
                         </span>
@@ -295,16 +330,16 @@ export function LifecycleBoard({ initialAgents }: LifecycleBoardProps) {
                       stageAgents.map((agent) => (
                         <div
                           key={agent.id}
-                          className="group relative rounded-lg border border-border bg-card p-3 shadow-xs hover:border-primary/40 hover:shadow-sm transition-all space-y-2.5"
+                          className="gh-bento group relative space-y-2.5"
                         >
                           {/* Title & Version */}
                           <div className="flex items-start justify-between gap-1.5">
                             <Link
                               href={`/agents/${agent.id}`}
-                              className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors flex items-center gap-1 leading-snug break-all"
+                              className="font-bold text-xs text-foreground group-hover:text-accent-foreground group-hover:underline transition-colors flex items-center gap-1 leading-snug break-all"
                             >
                               <span>{agent.name}</span>
-                              <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                              <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-muted-foreground" />
                             </Link>
                             <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-muted text-muted-foreground border border-border">
                               v{agent.current_version}
@@ -319,9 +354,9 @@ export function LifecycleBoard({ initialAgents }: LifecycleBoardProps) {
                           )}
 
                           {/* Metadata */}
-                          <div className="space-y-1 pt-1 border-t border-border/60 text-[11px] text-muted-foreground font-mono">
+                          <div className="space-y-1 pt-1.5 border-t border-border/60 text-[11px] text-muted-foreground font-mono">
                             <div className="flex items-center gap-1.5 truncate">
-                              <User className="w-3 h-3 shrink-0" />
+                              <User className="w-3 h-3 shrink-0 text-muted-foreground/70" />
                               <span className="truncate" title={agent.owner ?? undefined}>
                                 {agent.owner}
                               </span>
@@ -340,12 +375,12 @@ export function LifecycleBoard({ initialAgents }: LifecycleBoardProps) {
                           </div>
 
                           {/* Card Action Buttons */}
-                          <div className="flex items-center justify-between gap-1 pt-2 border-t border-border">
+                          <div className="flex items-center justify-between gap-1.5 pt-2 border-t border-border">
                             {/* Promote Button */}
                             <button
                               type="button"
                               onClick={() => setAgentForPromotion(agent)}
-                              className="flex-1 flex items-center justify-center gap-1 h-6 px-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground text-[11px] font-medium transition-colors"
+                              className="flex-1 flex items-center justify-center gap-1 h-6 px-2 rounded-md bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground text-[11px] font-semibold transition-colors cursor-pointer"
                               title="Promote or demote agent"
                             >
                               <ArrowUpRight className="w-3 h-3" />
@@ -356,7 +391,7 @@ export function LifecycleBoard({ initialAgents }: LifecycleBoardProps) {
                             <button
                               type="button"
                               onClick={() => setAgentForDiff(agent)}
-                              className="flex items-center justify-center h-6 w-6 rounded-md border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                              className="gh-btn-secondary h-6 px-2 text-[11px]"
                               title="Compare spec versions"
                             >
                               <GitCompare className="w-3 h-3" />
@@ -366,7 +401,7 @@ export function LifecycleBoard({ initialAgents }: LifecycleBoardProps) {
                             <button
                               type="button"
                               onClick={() => setAgentForHistory(agent)}
-                              className="flex items-center justify-center h-6 w-6 rounded-md border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                              className="gh-btn-secondary h-6 px-2 text-[11px]"
                               title="View immutable stage transition audit history"
                             >
                               <History className="w-3 h-3" />

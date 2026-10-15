@@ -70,26 +70,24 @@ export function StageHistoryModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
-      <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-xl border border-border bg-card shadow-2xl text-card-foreground overflow-hidden">
+      <div className="gh-modal max-w-2xl max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+        <div className="gh-box-header px-6 py-3.5">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <History className="w-5 h-5" />
-            </div>
+            <History className="w-4 h-4 text-primary" />
             <div>
-              <h2 className="text-lg font-semibold tracking-tight text-foreground">
-                Lifecycle Audit Log
+              <h2 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
+                <span>Lifecycle Audit Log</span>
+                <span className="font-mono text-xs font-normal text-muted-foreground">
+                  {agent.name}
+                </span>
               </h2>
-              <p className="text-xs text-muted-foreground">
-                Immutable transition history for <span className="font-mono text-foreground font-semibold">{agent.name}</span>
-              </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="gh-btn-subtle p-1"
           >
             <X className="w-4 h-4" />
           </button>
@@ -103,7 +101,7 @@ export function StageHistoryModal({
               <p className="text-xs">Loading immutable audit log...</p>
             </div>
           ) : error ? (
-            <div className="p-4 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-xs">
+            <div className="p-3 rounded-md border border-destructive/30 bg-destructive/10 text-destructive text-xs">
               {error}
             </div>
           ) : history.length === 0 ? (
@@ -115,7 +113,7 @@ export function StageHistoryModal({
               </p>
             </div>
           ) : (
-            <div className="relative border-l border-border/80 ml-3 space-y-6">
+            <div className="relative border-l border-border/80 ml-3 space-y-4">
               {history.map((record) => {
                 const isExpanded = expandedId === record.id;
                 const formattedDate = new Date(record.created_at).toLocaleString();
@@ -124,9 +122,9 @@ export function StageHistoryModal({
                 return (
                   <div key={record.id} className="relative pl-6">
                     {/* Timeline Node */}
-                    <div className="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full border-2 border-background bg-primary shadow-xs" />
+                    <div className="absolute -left-1.5 top-2 w-3 h-3 rounded-full border-2 border-background bg-primary shadow-xs" />
 
-                    <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-3">
+                    <div className="gh-box p-3.5 space-y-2.5">
                       {/* Top Bar: Stages and Date */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
@@ -214,11 +212,11 @@ export function StageHistoryModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end px-6 py-3 border-t border-border bg-muted/20">
+        <div className="flex items-center justify-end px-6 py-3 border-t border-border bg-muted/30">
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border bg-background hover:bg-muted text-foreground transition-colors"
+            className="gh-btn-secondary"
           >
             Close
           </button>

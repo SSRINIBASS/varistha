@@ -122,16 +122,16 @@ export function TraceWaterfall({ spans, className = "" }: TraceWaterfallProps) {
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Waterfall Visualizer */}
-      <div className="border border-border/80 rounded-xl bg-card overflow-hidden shadow-xs">
-        <div className="p-4 border-b border-border/60 bg-muted/30 flex items-center justify-between text-xs font-medium text-muted-foreground">
+      <div className="gh-box w-full shadow-2xs">
+        <div className="gh-box-header px-4 py-3">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-primary" />
-            <span className="font-semibold text-foreground text-sm">Execution Timeline</span>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-muted">
+            <span className="font-semibold text-foreground text-xs">Execution Timeline</span>
+            <span className="gh-counter">
               {spans.length} {spans.length === 1 ? "span" : "spans"}
             </span>
           </div>
-          <div className="flex items-center gap-1 font-mono text-[11px]">
+          <div className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
             <Clock className="w-3.5 h-3.5" />
             <span>Total: {totalDurationMs.toFixed(1)}ms</span>
           </div>
@@ -150,7 +150,7 @@ export function TraceWaterfall({ spans, className = "" }: TraceWaterfallProps) {
         </div>
 
         {/* Span Waterfall Rows */}
-        <div className="divide-y divide-border/30">
+        <div className="divide-y divide-border/40">
           {sortedSpans.map((span) => {
             const spanStart = new Date(span.start_time).getTime();
             const spanEnd = span.end_time
@@ -176,9 +176,9 @@ export function TraceWaterfall({ spans, className = "" }: TraceWaterfallProps) {
               <div
                 key={span.id}
                 onClick={() => setSelectedSpanId(span.id)}
-                className={`grid grid-cols-12 px-4 py-2.5 items-center gap-2 cursor-pointer transition-colors ${
+                className={`grid grid-cols-12 px-4 py-2 items-center gap-2 cursor-pointer transition-colors ${
                   isSelected
-                    ? "bg-primary/5 dark:bg-primary/10 border-l-4 border-l-primary"
+                    ? "bg-primary/5 dark:bg-primary/10 border-l-3 border-l-primary"
                     : "hover:bg-muted/40"
                 }`}
               >
@@ -221,31 +221,31 @@ export function TraceWaterfall({ spans, className = "" }: TraceWaterfallProps) {
 
       {/* Selected Span Inspector Drawer */}
       {selectedSpan && (
-        <div className="border border-border/80 rounded-xl bg-card p-5 shadow-xs space-y-4">
+        <div className="gh-bento space-y-3.5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
             <div className="flex items-center gap-2.5">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
-                <Code2 className="w-4 h-4" />
+              <div className="flex items-center justify-center w-7 h-7 rounded-md bg-primary/10 text-primary">
+                <Code2 className="w-3.5 h-3.5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-foreground font-mono">
+                <h4 className="text-xs font-bold text-foreground font-mono">
                   {selectedSpan.name}
                 </h4>
-                <p className="text-[11px] font-mono text-muted-foreground">
+                <p className="text-[10px] font-mono text-muted-foreground">
                   ID: {selectedSpan.id} {selectedSpan.parent_span_id ? `| Parent: ${selectedSpan.parent_span_id}` : "(Root Span)"}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded text-xs font-mono font-medium bg-muted text-foreground">
+              <span className="px-2 py-0.5 rounded text-xs font-mono font-medium bg-muted text-foreground border border-border">
                 {selectedSpan.duration_ms?.toFixed(2) ?? "0.00"} ms
               </span>
               <span
-                className={`px-2.5 py-1 rounded text-xs font-medium ${
+                className={`px-2 py-0.5 rounded text-xs font-semibold ${
                   selectedSpan.status_code === "OK" || selectedSpan.status_code === "1"
-                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                    : "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                    : "bg-destructive/10 text-destructive border border-destructive/20"
                 }`}
               >
                 {selectedSpan.status_code === "OK" || selectedSpan.status_code === "1" ? "Status: OK" : "Status: Error"}
@@ -255,17 +255,17 @@ export function TraceWaterfall({ spans, className = "" }: TraceWaterfallProps) {
 
           {/* Attributes Grid */}
           <div>
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+            <h5 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
               Span Attributes
             </h5>
             {Object.keys(selectedSpan.attributes || {}).length > 0 ? (
-              <div className="border border-border/60 rounded-lg overflow-hidden divide-y divide-border/40 font-mono text-xs">
+              <div className="gh-box divide-y divide-border/40 font-mono text-xs">
                 {Object.entries(selectedSpan.attributes).map(([key, val]) => (
-                  <div key={key} className="grid grid-cols-12 px-3 py-2 bg-card hover:bg-muted/30">
-                    <span className="col-span-5 md:col-span-4 font-medium text-foreground truncate pr-2">
+                  <div key={key} className="grid grid-cols-12 px-3 py-1.5 bg-card hover:bg-muted/30">
+                    <span className="col-span-5 md:col-span-4 font-semibold text-foreground truncate pr-2">
                       {key}
                     </span>
-                    <span className="col-span-7 md:col-span-8 text-muted-foreground break-all">
+                    <span className="col-span-7 md:col-span-8 text-muted-foreground break-all text-[11px]">
                       {typeof val === "object" ? JSON.stringify(val) : String(val)}
                     </span>
                   </div>

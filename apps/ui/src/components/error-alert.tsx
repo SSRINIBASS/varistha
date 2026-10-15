@@ -22,17 +22,17 @@ export function ErrorAlert({
   return (
     <div
       role="alert"
-      className={`flex items-start gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive dark:bg-destructive/15 ${className}`}
+      className={`flex items-start gap-3 p-3.5 rounded-md border border-destructive/40 bg-destructive/10 text-destructive ${className}`}
     >
-      <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-      <div className="flex-1 text-sm">
-        <h4 className="font-semibold text-destructive">{title}</h4>
-        <p className="mt-1 text-destructive/90">{message}</p>
+      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+      <div className="flex-1 text-xs">
+        <h4 className="font-bold text-destructive">{title}</h4>
+        <p className="mt-1 text-destructive/90 leading-relaxed">{message}</p>
         {onRetry && (
           <button
             type="button"
             onClick={onRetry}
-            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors cursor-pointer shadow-xs"
+            className="mt-2.5 gh-btn-danger text-xs"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Try Again</span>

@@ -158,45 +158,40 @@ export function VersionDiffModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
-      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-xl border border-border bg-card shadow-2xl text-card-foreground overflow-hidden">
+      <div className="gh-modal max-w-5xl max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+        <div className="gh-box-header px-6 py-3.5">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <GitCompare className="w-5 h-5" />
-            </div>
+            <GitCompare className="w-4 h-4 text-primary" />
             <div>
-              <h2 className="text-lg font-semibold tracking-tight text-foreground">
-                Spec Diff Viewer
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Compare immutable spec versions for{" "}
-                <span className="font-mono text-foreground font-semibold">
+              <h2 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
+                <span>Spec Diff Viewer</span>
+                <span className="font-mono text-xs font-normal text-muted-foreground">
                   {agent.name}
                 </span>
-              </p>
+              </h2>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="gh-btn-subtle p-1"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Version Pickers Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-muted/30 px-6 py-3">
+        {/* Version Pickers Bar (GitHub Branch/Commit Compare Style) */}
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-muted/40 px-6 py-2.5">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">Base (v1):</span>
+              <span className="text-xs font-semibold text-muted-foreground">base:</span>
               <select
                 aria-label="Base Version (v1)"
                 value={v1}
                 onChange={(e) => setV1(e.target.value)}
                 disabled={loadingVersions}
-                className="h-8 rounded-md border border-border bg-background px-2.5 text-xs font-mono font-medium text-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
+                className="gh-input h-7 py-0.5 text-xs font-mono font-medium"
               >
                 {versions.map((ver) => (
                   <option key={ver.version} value={ver.version}>
@@ -206,16 +201,16 @@ export function VersionDiffModal({
               </select>
             </div>
 
-            <ArrowRight className="w-4 h-4 text-muted-foreground" />
+            <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">Target (v2):</span>
+              <span className="text-xs font-semibold text-muted-foreground">compare:</span>
               <select
                 aria-label="Target Version (v2)"
                 value={v2}
                 onChange={(e) => setV2(e.target.value)}
                 disabled={loadingVersions}
-                className="h-8 rounded-md border border-border bg-background px-2.5 text-xs font-mono font-medium text-foreground focus:outline-hidden focus:ring-1 focus:ring-ring"
+                className="gh-input h-7 py-0.5 text-xs font-mono font-medium"
               >
                 {versions.map((ver) => (
                   <option key={ver.version} value={ver.version}>
@@ -229,17 +224,17 @@ export function VersionDiffModal({
           {/* Change Summary Badges */}
           {diff && !loadingDiff && (
             <div className="flex items-center gap-2 text-xs font-mono">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
-                +{diff.summary?.added ?? 0} added
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                +{diff.summary?.added ?? 0}
               </span>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
-                -{diff.summary?.removed ?? 0} removed
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                -{diff.summary?.removed ?? 0}
               </span>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
-                ~{diff.summary?.modified ?? 0} modified
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                ~{diff.summary?.modified ?? 0}
               </span>
               {diff.has_breaking_changes && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-100 text-red-800 dark:bg-red-950/70 dark:text-red-300 border border-red-300 dark:border-red-800 font-semibold">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] bg-red-500/10 text-destructive border border-destructive/30 font-semibold">
                   <AlertTriangle className="w-3 h-3" />
                   {diff.summary?.breaking ?? 0} breaking
                 </span>
@@ -320,59 +315,63 @@ export function VersionDiffModal({
                     </h3>
                   </div>
 
-                  <div className="overflow-x-auto rounded-lg border border-border">
+                  <div className="gh-box">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="border-b border-border bg-muted/40 font-medium text-muted-foreground">
-                          <th className="py-2.5 px-3">Field</th>
-                          <th className="py-2.5 px-3">Change</th>
-                          <th className="py-2.5 px-3">Old Value (v{v1})</th>
-                          <th className="py-2.5 px-3">New Value (v{v2})</th>
-                          <th className="py-2.5 px-3">Impact</th>
+                        <tr className="border-b border-border bg-muted/60 font-semibold text-muted-foreground">
+                          <th className="py-2 px-3">Field</th>
+                          <th className="py-2 px-3">Change</th>
+                          <th className="py-2 px-3">Old Value (v{v1})</th>
+                          <th className="py-2 px-3">New Value (v{v2})</th>
+                          <th className="py-2 px-3">Impact</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border">
+                      <tbody className="divide-y divide-border/60">
                         {diff.entries.map((entry: DiffEntry, i: number) => {
                           const isBreaking = entry.is_breaking;
+                          const diffClass =
+                            entry.change_type === "added"
+                              ? "gh-diff-add"
+                              : entry.change_type === "removed"
+                              ? "gh-diff-delete"
+                              : "";
                           return (
                             <tr
                               key={i}
-                              className={`transition-colors ${
-                                isBreaking
-                                  ? "bg-red-50/40 dark:bg-red-950/20"
-                                  : "hover:bg-muted/30"
+                              className={`transition-colors hover:bg-muted/30 ${diffClass} ${
+                                isBreaking ? "ring-1 ring-destructive/40" : ""
                               }`}
                             >
-                              <td className="py-3 px-3 font-mono font-medium text-foreground align-top">
+                              <td className="py-2.5 px-3 font-mono font-medium text-foreground align-top">
                                 {entry.field}
                               </td>
-                              <td className="py-3 px-3 align-top">
+                              <td className="py-2.5 px-3 align-top">
                                 <span
-                                  className={`inline-flex px-2 py-0.5 rounded text-[11px] font-mono font-medium ${
+                                  className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold ${
                                     entry.change_type === "added"
-                                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60"
+                                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
                                       : entry.change_type === "removed"
-                                      ? "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60"
-                                      : "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60"
+                                      ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30"
+                                      : "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30"
                                   }`}
                                 >
                                   {entry.change_type}
                                 </span>
                               </td>
-                              <td className="py-3 px-3 align-top max-w-[200px]">
+                              <td className="py-2.5 px-3 align-top max-w-[200px]">
                                 {renderValue(entry.old_value)}
                               </td>
-                              <td className="py-3 px-3 align-top max-w-[200px]">
+                              <td className="py-2.5 px-3 align-top max-w-[200px]">
                                 {renderValue(entry.new_value)}
                               </td>
-                              <td className="py-3 px-3 align-top">
+                              <td className="py-2.5 px-3 align-top">
                                 {isBreaking ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-800 dark:bg-red-950/70 dark:text-red-300 border border-red-300 dark:border-red-800">
-                                    <AlertTriangle className="w-3 h-3 text-red-600 dark:text-red-400" />
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-500/10 text-destructive border border-destructive/30">
+                                    <AlertTriangle className="w-3 h-3 text-destructive" />
                                     Breaking
                                   </span>
                                 ) : (
-                                  <span className="inline-flex px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                  <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground border border-border">
                                     Safe
                                   </span>
                                 )}
@@ -390,11 +389,11 @@ export function VersionDiffModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end border-t border-border px-6 py-3 bg-muted/20">
+        <div className="flex items-center justify-end border-t border-border px-6 py-3 bg-muted/30">
           <button
             type="button"
             onClick={onClose}
-            className="h-8 px-4 rounded-md border border-border bg-background text-xs font-medium text-foreground hover:bg-muted transition-colors"
+            className="gh-btn-secondary"
           >
             Close
           </button>
