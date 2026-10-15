@@ -1,0 +1,10 @@
+name: web-fetch
+version: 0.1.0
+description: Fetch web page content over HTTP/HTTPS with strict SSRF protection.
+transport: in-process
+risk: low
+scopes:
+  - network:read
+requires_approval: false
+untrusted_output: true
+config_schema: ./config.schema.json

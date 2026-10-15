@@ -47,6 +47,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 15 unit and integration tests with 97% overall coverage on `runtime/`
 - `docs/adr/0005-runtime-interface-and-langgraph-adapter.md` — ADR documenting runtime decoupling, LangGraph encapsulation, LiteLLM usage, and mock runtime strategy
 - New dependency: `langgraph>=0.2.0` (MIT, added to `varistha-api`)
+- `apps/api/src/plugins` and `plugins/web-fetch`: MCP Plugin Host and web-fetch plugin with SSRF protection
+  - Plugin manifest validation (`manifest.py`): Pydantic model enforcing `name`, `version`, `entrypoint`, `scopes`, `risk` level, and `untrusted_output` flag
+  - Plugin host (`host.py`): Plugin discovery across filesystem directories, tool schema inspection, and permission gating outside the model (`is_plugin_enabled`)
+  - Web fetch plugin (`plugins/web-fetch`): Async HTTP fetcher (`fetcher.py`) with HTML text extraction, `<title>` extraction, script/style sanitization, and redirect safety
+  - SSRF protection (`ssrf.py`): Strict IPv4/IPv6 validation blocking loopback (`127.0.0.0/8`, `::1`), RFC 1918 private ranges, cloud metadata endpoints (`169.254.169.254`), CGNAT (`100.64.0.0/10`), non-HTTP schemes, and credentials in URLs
+  - Untrusted output tagging: Web responses explicitly flagged with `untrusted: True`
+  - 37 unit tests across host, SSRF, and fetcher modules with 98% overall test coverage
+- `docs/adr/0006-mcp-plugin-host-and-ssrf-protection.md` — ADR documenting plugin architecture, security boundaries, and SSRF defense-in-depth
 
 ### Phase 0 — Foundations (Week 1)
 

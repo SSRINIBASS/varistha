@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebFetchConfig",
+  "type": "object",
+  "properties": {
+    "max_chars": {
+      "type": "integer",
+      "default": 10000,
+      "minimum": 100,
+      "maximum": 100000,
+      "description": "Maximum characters of text content to extract and return."
+    },
+    "timeout_seconds": {
+      "type": "number",
+      "default": 10.0,
+      "minimum": 1.0,
+      "maximum": 60.0,
+      "description": "HTTP request timeout in seconds."
+    },
+    "user_agent": {
+      "type": "string",
+      "default": "VaristhaBot/0.1 (+https://varistha.ai)",
+      "description": "Custom User-Agent header sent with requests."
+    }
+  },
+  "additionalProperties": false
+}
