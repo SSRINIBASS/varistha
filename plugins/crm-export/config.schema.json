@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CrmExportPluginConfig",
+  "type": "object",
+  "properties": {
+    "default_format": {
+      "type": "string",
+      "enum": ["csv", "hubspot", "salesforce", "json"],
+      "default": "csv",
+      "description": "Default destination format for exported lead data"
+    }
+  },
+  "additionalProperties": false
+}

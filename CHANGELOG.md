@@ -24,7 +24,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `apps/ui/src/components/badges.tsx`: Added `PluginRiskBadge` (`low`, `medium`, `high`) and `ApprovalRequiredBadge` (`Approval Required`, `Auto-Executable`).
 - `apps/ui/src/components/navbar.tsx`: Added `Plugins` navigation item with `Blocks` icon.
 - `apps/ui/src/__tests__/plugins.test.tsx`: Comprehensive unit tests for badges, card interactions, inspector modal tabs, and explorer filters.
-- `docs/adr/0020-plugin-manifest-registry-and-toggle-system.md`: Architecture Decision Record for the plugin manifest registry, UI explorer, and security boundary gating.
+- `plugins/web-search/`: Web search plugin:
+  - `plugin.yaml`: Manifest declaration (`scopes: [network:read]`, `risk: low`, `untrusted_output: true`).
+  - `config.schema.json`: JSON configuration schema supporting `duckduckgo`, `searxng`, and `mock` engines.
+  - `searcher.py`: Query execution, DuckDuckGo HTML parser, redirect link normalization, and deterministic mock engine.
+  - `tests/test_searcher.py`: Unit tests for search execution, HTML parsing, and mock mode.
+- `plugins/web-scrape/`: Deep webpage and article scraper plugin:
+  - `plugin.yaml`: Manifest declaration (`scopes: [network:read]`, `risk: low`, `untrusted_output: true`).
+  - `config.schema.json`: JSON configuration schema for character limits and heading/link extraction flags.
+  - `ssrf.py`: Strict SSRF defense blocking loopback, RFC 1918 private subnets, link-local, and cloud metadata.
+  - `scraper.py`: Content extraction, clean markdown conversion, metadata parsing, and hyperlink normalization.
+  - `tests/test_scraper.py`: Unit tests for SSRF enforcement, markdown conversion, and metadata extraction.
+- `plugins/crm-export/`: CRM and lead export plugin:
+  - `plugin.yaml`: Manifest declaration (`scopes: [storage:write]`, `risk: medium`).
+  - `config.schema.json`: JSON configuration schema for export formats.
+  - `exporter.py`: Exporter supporting CSV (with header normalization), HubSpot batch contacts, Salesforce Lead sObjects, and JSON formats, with strict lead identifier validation.
+  - `tests/test_exporter.py`: Unit tests for validation rules, CSV generation, and CRM payload schemas.
+- `apps/api/src/plugins/host.py`: Wired handlers and OpenAI/LiteLLM function calling definitions for `web_search`, `web_scrape`, and `crm_export`.
+- `docs/adr/0021-core-research-and-data-plugins.md`: Architecture Decision Record for core research and data plugins.
+- `docs/plans/phase-5-task-2-core-research-and-data-plugins.md`: Task plan and acceptance verification record.
 
 ### Phase 4 — Evals & Confidence
 

@@ -135,3 +135,76 @@ async def test_execute_tool_missing_handler_raises() -> None:
         )
 
     assert "unregistered_tool" in str(exc_info.value)
+
+
+def test_discover_plugins_finds_all_core_plugins() -> None:
+    """PluginHost scans the plugins directory and registers all core plugins."""
+    host = PluginHost()
+    manifests = host.discover_plugins()
+
+    assert "web-fetch" in manifests
+    assert "web-search" in manifests
+    assert "web-scrape" in manifests
+    assert "crm-export" in manifests
+
+    search_manifest = host.get_manifest("web-search")
+    assert search_manifest.risk == "low"
+    assert search_manifest.untrusted_output is True
+
+    scrape_manifest = host.get_manifest("web-scrape")
+    assert scrape_manifest.risk == "low"
+    assert scrape_manifest.untrusted_output is True
+
+    crm_manifest = host.get_manifest("crm-export")
+    assert crm_manifest.risk == "medium"
+    assert crm_manifest.untrusted_output is False
+
+
+def test_get_tool_definitions_all_core_plugins() -> None:
+    """PluginHost generates valid LLM tool definitions for all core research plugins."""
+    host = PluginHost()
+    tools = host.get_tool_definitions(
+        enabled_plugin_names=["web-fetch", "web-search", "web-scrape", "crm-export"]
+    )
+
+    names = [t["function"]["name"] for t in tools]
+    assert "web_fetch" in names
+    assert "web_search" in names
+    assert "web_scrape" in names
+    assert "crm_export" in names
+
+
+@pytest.mark.asyncio
+async def test_execute_core_tools_integration() -> None:
+    """PluginHost executes web-search and crm-export with proper trust boundary flags."""
+    host = PluginHost()
+    spec = {
+        "spec": {
+            "plugins": [
+                {"name": "web-search", "enabled": True},
+                {"name": "crm-export", "enabled": True},
+            ],
+        },
+    }
+
+    # Execute web_search in mock mode
+    search_res = await host.execute_tool(
+        plugin_name="web-search",
+        tool_name="web_search",
+        args={"query": "AI employee control plane", "engine": "mock", "max_results": 2},
+        agent_spec=spec,
+    )
+    assert search_res["total_results"] == 2
+    assert search_res["untrusted"] is True
+
+    # Execute crm_export
+    crm_res = await host.execute_tool(
+        plugin_name="crm-export",
+        tool_name="crm_export",
+        args={"leads": [{"email": "founder@acme.com", "company": "Acme AI"}], "format": "csv"},
+        agent_spec=spec,
+    )
+    assert crm_res["format"] == "csv"
+    assert "founder@acme.com" in crm_res["payload"]
+    assert "untrusted" not in crm_res  # untrusted_output: false
+

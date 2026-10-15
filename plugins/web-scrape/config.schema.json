@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WebScrapePluginConfig",
+  "type": "object",
+  "properties": {
+    "max_chars": {
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 100000,
+      "default": 25000,
+      "description": "Maximum characters of markdown text to extract"
+    },
+    "extract_headings": {
+      "type": "boolean",
+      "default": true,
+      "description": "Extract h1, h2, h3 headings into structured list"
+    },
+    "extract_links": {
+      "type": "boolean",
+      "default": true,
+      "description": "Extract outbound links with anchor text"
+    },
+    "timeout_seconds": {
+      "type": "number",
+      "minimum": 1.0,
+      "maximum": 30.0,
+      "default": 15.0,
+      "description": "HTTP request timeout in seconds"
+    }
+  },
+  "additionalProperties": false
+}

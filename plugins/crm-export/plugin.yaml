@@ -1,0 +1,10 @@
+name: crm-export
+version: 0.1.0
+description: Export qualified leads and accounts to CSV and standardized CRM payloads (HubSpot, Salesforce).
+transport: in-process
+risk: medium
+scopes:
+  - storage:write
+requires_approval: false
+untrusted_output: false
+config_schema: ./config.schema.json

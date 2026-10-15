@@ -1,0 +1,10 @@
+name: web-scrape
+version: 0.1.0
+description: Deep article, documentation, and webpage extractor with SSRF defense and structured markdown output.
+transport: in-process
+risk: low
+scopes:
+  - network:read
+requires_approval: false
+untrusted_output: true
+config_schema: ./config.schema.json

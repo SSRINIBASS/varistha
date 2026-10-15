@@ -68,14 +68,51 @@ class PluginHost:
 
     def _register_built_in_handlers(self) -> None:
         """Register execution handlers for in-process plugins."""
+        # 1. web-fetch
         web_fetch_dir = self.plugins_dir / "web-fetch"
-        if str(web_fetch_dir) not in sys.path:
+        if web_fetch_dir.exists() and str(web_fetch_dir) not in sys.path:
             sys.path.insert(0, str(web_fetch_dir))
-
         try:
             from fetcher import fetch_url  # pyright: ignore[reportMissingImports]
 
             self.register_handler("web-fetch", "fetch_url", fetch_url)
+            self.register_handler("web-fetch", "web_fetch", fetch_url)
+        except ImportError:
+            pass
+
+        # 2. web-search
+        web_search_dir = self.plugins_dir / "web-search"
+        if web_search_dir.exists() and str(web_search_dir) not in sys.path:
+            sys.path.insert(0, str(web_search_dir))
+        try:
+            from searcher import search_web  # pyright: ignore[reportMissingImports]
+
+            self.register_handler("web-search", "search_web", search_web)
+            self.register_handler("web-search", "web_search", search_web)
+        except ImportError:
+            pass
+
+        # 3. web-scrape
+        web_scrape_dir = self.plugins_dir / "web-scrape"
+        if web_scrape_dir.exists() and str(web_scrape_dir) not in sys.path:
+            sys.path.insert(0, str(web_scrape_dir))
+        try:
+            from scraper import scrape_url  # pyright: ignore[reportMissingImports]
+
+            self.register_handler("web-scrape", "scrape_url", scrape_url)
+            self.register_handler("web-scrape", "web_scrape", scrape_url)
+        except ImportError:
+            pass
+
+        # 4. crm-export
+        crm_export_dir = self.plugins_dir / "crm-export"
+        if crm_export_dir.exists() and str(crm_export_dir) not in sys.path:
+            sys.path.insert(0, str(crm_export_dir))
+        try:
+            from exporter import export_leads  # pyright: ignore[reportMissingImports]
+
+            self.register_handler("crm-export", "export_leads", export_leads)
+            self.register_handler("crm-export", "crm_export", export_leads)
         except ImportError:
             pass
 
@@ -179,6 +216,102 @@ class PluginHost:
                                     },
                                 },
                                 "required": ["url"],
+                            },
+                        },
+                    }
+                )
+
+            elif name == "web-search" and "web-search" in self._manifests:
+                tools.append(
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "web_search",
+                            "description": self._manifests["web-search"].description,
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "query": {
+                                        "type": "string",
+                                        "description": "The search query string.",
+                                    },
+                                    "max_results": {
+                                        "type": "integer",
+                                        "description": "Maximum number of search results.",
+                                        "default": 5,
+                                    },
+                                    "engine": {
+                                        "type": "string",
+                                        "description": "Search provider engine.",
+                                        "enum": ["duckduckgo", "mock"],
+                                        "default": "duckduckgo",
+                                    },
+                                },
+                                "required": ["query"],
+                            },
+                        },
+                    }
+                )
+
+            elif name == "web-scrape" and "web-scrape" in self._manifests:
+                tools.append(
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "web_scrape",
+                            "description": self._manifests["web-scrape"].description,
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "url": {
+                                        "type": "string",
+                                        "description": "The public HTTP/HTTPS URL to scrape.",
+                                    },
+                                    "max_chars": {
+                                        "type": "integer",
+                                        "description": "Max characters of markdown content.",
+                                        "default": 25000,
+                                    },
+                                    "extract_headings": {
+                                        "type": "boolean",
+                                        "description": "Whether to extract structured headings.",
+                                        "default": True,
+                                    },
+                                    "extract_links": {
+                                        "type": "boolean",
+                                        "description": "Whether to extract outbound links.",
+                                        "default": True,
+                                    },
+                                },
+                                "required": ["url"],
+                            },
+                        },
+                    }
+                )
+
+            elif name == "crm-export" and "crm-export" in self._manifests:
+                tools.append(
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "crm_export",
+                            "description": self._manifests["crm-export"].description,
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "leads": {
+                                        "type": "array",
+                                        "description": "List of lead objects to export.",
+                                        "items": {"type": "object"},
+                                    },
+                                    "format": {
+                                        "type": "string",
+                                        "description": "Target export format.",
+                                        "enum": ["csv", "hubspot", "salesforce", "json"],
+                                        "default": "csv",
+                                    },
+                                },
+                                "required": ["leads"],
                             },
                         },
                     }
