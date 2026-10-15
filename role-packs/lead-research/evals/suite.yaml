@@ -1,0 +1,85 @@
+name: lead-research-benchmark
+description: Comprehensive evaluation benchmark for the Lead Researcher & ICP Qualification agent.
+min_pass_rate: 0.85
+evaluators:
+  - name: tier-contains-check
+    type: contains
+    threshold: 1.0
+  - name: json-schema-validator
+    type: json-schema
+    config:
+      schema:
+        type: object
+        properties:
+          company_name: { type: string }
+          domain: { type: string }
+          icp_tier:
+            type: string
+            enum: ["TIER_1_PRIORITY", "TIER_2_QUALIFIED", "TIER_3_NURTURE", "DISQUALIFIED"]
+          icp_score: { type: integer, minimum: 0, maximum: 100 }
+          decision_makers: { type: array }
+        required: ["company_name", "domain", "icp_tier", "icp_score"]
+
+cases:
+  - id: case-ai-agent-infra
+    name: High-Growth AI Agent Infrastructure Startup
+    input:
+      company_name: Nexus Intelligence
+      domain: nexusintel.ai
+      raw_profile: |
+        Nexus Intelligence builds autonomous agent swarms for enterprise ERP migrations.
+        They recently raised a $14M Series A led by top-tier VCs and have grown from 15 to 65 employees.
+        Active hiring for 5 AI engineers and 1 Head of AI Safety. Tech stack: Python, LangGraph, AWS.
+    expected:
+      icp_tier: TIER_1_PRIORITY
+    evaluator: tier-contains-check
+
+  - id: case-fintech-compliance
+    name: Regulated Fintech Platform Scaling AI Ops
+    input:
+      company_name: VaultFlow
+      domain: vaultflow.io
+      raw_profile: |
+        VaultFlow provides B2B automated reconciliation and AML compliance for neo-banks.
+        120 employees, Series B ($28M raised), headquartered in New York.
+        Deploying generative AI assistants to summarize audit logs, facing heavy regulatory scrutiny.
+    expected:
+      icp_tier: TIER_1_PRIORITY
+    evaluator: tier-contains-check
+
+  - id: case-b2b-devtools
+    name: Mid-Market Developer Tooling SaaS
+    input:
+      company_name: PipelineKit
+      domain: pipelinekit.dev
+      raw_profile: |
+        PipelineKit is a CI/CD build cache optimizer for monorepos.
+        40 employees, profitable with $4M ARR, bootstrap/seed stage.
+        Exploring internal AI bots for code review automation.
+    expected:
+      icp_tier: TIER_2_QUALIFIED
+    evaluator: tier-contains-check
+
+  - id: case-ecommerce-shoes
+    name: Consumer D2C Footwear Brand
+    input:
+      company_name: Strider Shoes
+      domain: stridershoes.com
+      raw_profile: |
+        Direct-to-consumer athletic and casual footwear brand selling exclusively through Shopify and Instagram.
+        18 employees, focusing on seasonal fashion and retail wholesale distribution.
+    expected:
+      icp_tier: DISQUALIFIED
+    evaluator: tier-contains-check
+
+  - id: case-local-plumbing
+    name: Regional Plumbing & Home Repair
+    input:
+      company_name: Blue Ridge Plumbing
+      domain: blueridgeplumbing.local
+      raw_profile: |
+        Family-owned residential and commercial plumbing contractor serving southwest Virginia.
+        8 service technicians and 2 dispatchers. No software products or tech development.
+    expected:
+      icp_tier: DISQUALIFIED
+    evaluator: tier-contains-check

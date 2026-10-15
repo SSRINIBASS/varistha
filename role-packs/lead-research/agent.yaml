@@ -1,0 +1,41 @@
+apiVersion: varistha/v1
+kind: Agent
+metadata:
+  name: lead-researcher
+  owner: sales-ops@varistha.ai
+  stage: prototype
+  version: 0.1.0
+spec:
+  role: >
+    Autonomous B2B Lead Researcher and ICP Qualifier that discovers company intelligence,
+    evaluates ideal customer profile alignment, identifies key decision-makers, and
+    structures enriched lead data for CRM ingestion.
+  model:
+    primary: gpt-4o-mini
+    fallback: gpt-3.5-turbo
+  instructions: prompts/system.md
+  plugins:
+    - name: web-search
+      enabled: true
+    - name: web-scrape
+      enabled: true
+    - name: crm-export
+      enabled: true
+  autonomy: L1
+  guardrails:
+    input:
+      - pii-redact
+      - injection-scan
+    output:
+      - schema-valid
+    tools:
+      - outbound-needs-approval
+  budget:
+    max_usd_per_run: 0.50
+    max_usd_per_day: 15.00
+  triggers:
+    - type: manual
+    - type: webhook
+  evals:
+    suite: evals/suite.yaml
+    min_pass_rate: 0.85
