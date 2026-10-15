@@ -1,0 +1,43 @@
+apiVersion: varistha/v1
+kind: Agent
+metadata:
+  name: content-repurposer
+  owner: growth@varistha.ai
+  stage: prototype
+  version: 0.1.0
+spec:
+  role: >
+    Autonomous Content Repurposer that ingests long-form assets (podcasts, whitepapers, blog posts)
+    and transforms them into 5 channel-optimized distribution assets: an X thread, a LinkedIn carousel post,
+    standalone viral snippets, a newsletter feature segment, and an executive slide deck outline.
+  model:
+    primary: gpt-4o-mini
+    fallback: gpt-3.5-turbo
+  instructions: prompts/system.md
+  plugins:
+    - name: web-fetch
+      enabled: true
+    - name: email-draft
+      enabled: true
+    - name: x-post
+      enabled: true
+    - name: linkedin-post
+      enabled: true
+  autonomy: L1
+  guardrails:
+    input:
+      - pii-redact
+      - injection-scan
+    output:
+      - schema-valid
+    tools:
+      - outbound-needs-approval
+  budget:
+    max_usd_per_run: 0.35
+    max_usd_per_day: 10.00
+  triggers:
+    - type: manual
+    - type: webhook
+  evals:
+    suite: evals/suite.yaml
+    min_pass_rate: 0.85

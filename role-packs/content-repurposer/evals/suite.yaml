@@ -1,0 +1,113 @@
+name: content-repurposer-benchmark
+description: Comprehensive evaluation benchmark for the Content Repurposer & Multi-Channel Distribution agent.
+min_pass_rate: 0.85
+evaluators:
+  - name: structure-check
+    type: contains
+    threshold: 1.0
+  - name: json-schema-validator
+    type: json-schema
+    config:
+      schema:
+        type: object
+        properties:
+          source_title: { type: string }
+          core_thesis: { type: string }
+          assets:
+            type: object
+            properties:
+              x_thread:
+                type: array
+                minItems: 5
+                items: { type: string, maxLength: 280 }
+              linkedin_post: { type: string }
+              standalone_snippets:
+                type: array
+                minItems: 2
+                items: { type: string }
+              newsletter_segment:
+                type: object
+                properties:
+                  subject_lines: { type: array, minItems: 2 }
+                  tldr: { type: array, minItems: 3 }
+                  editorial_body: { type: string }
+                  key_quote: { type: string }
+                  cta: { type: string }
+                required: ["subject_lines", "tldr", "editorial_body", "key_quote", "cta"]
+              slide_deck_outline:
+                type: array
+                minItems: 5
+                maxItems: 5
+                items:
+                  type: object
+                  properties:
+                    slide_number: { type: integer }
+                    title: { type: string }
+                    key_message: { type: string }
+                    bullets: { type: array, minItems: 2 }
+                    visual_prompt: { type: string }
+                  required: ["slide_number", "title", "key_message", "bullets", "visual_prompt"]
+            required: ["x_thread", "linkedin_post", "standalone_snippets", "newsletter_segment", "slide_deck_outline"]
+        required: ["source_title", "core_thesis", "assets"]
+
+cases:
+  - id: case-podcast-transcript-agent-ops
+    name: Repurposing AI Agent Operations Podcast Transcript
+    input:
+      title: "Episode 42: The Wild West of Autonomous Agent Operations"
+      source_type: "podcast_transcript"
+      text: |
+        Host: Today we are talking with Maya, VP of Eng at ScaleFlow. Maya, what is the biggest mistake you see companies making with AI agents?
+        Maya: Everyone is deploying agents directly into production without any control plane. They think giving an LLM a prompt like 'be careful' is enough. In practice, 80% of our early failures were recursive tool calls. An agent would hit a rate limit, retry infinitely, and spend $500 before our alert fired. You need deterministic guardrails running outside the LLM. You need OpenTelemetry traces on every single tool execution.
+    expected:
+      core_thesis_keywords: ["control plane", "deterministic guardrails", "recursive", "OpenTelemetry"]
+      min_assets: 5
+    evaluator: structure-check
+
+  - id: case-technical-whitepaper-self-hosting
+    name: Repurposing Enterprise Whitepaper on Self-Hosting AI
+    input:
+      title: "Self-Hosting Autonomous AI: Privacy, Security, and Compliance in Your VPC"
+      source_type: "whitepaper"
+      text: |
+        Enterprise adoption of AI agents is blocked by data exfiltration concerns. When sensitive customer data flows through third-party multi-tenant SaaS platforms, SOC2 and HIPAA compliance become major roadblocks. Self-hosting via Docker Compose or Kubernetes inside the customer's private cloud ensures that API keys, proprietary customer data, and audit logs remain strictly within the corporate perimeter.
+    expected:
+      core_thesis_keywords: ["data exfiltration", "private cloud", "compliance", "self-hosting"]
+      min_assets: 5
+    evaluator: structure-check
+
+  - id: case-founder-blog-post-bootstrapping
+    name: Repurposing Bootstrapping Founder Journey Post
+    input:
+      title: "How We Reached $1M ARR with 4 Engineers and 6 AI Employees"
+      source_type: "blog_post"
+      text: |
+        Two years ago, scaling a B2B SaaS required hiring a dozen SDRs and customer support reps. Today, we run our entire inbound qualification, competitive intelligence, and initial triage using autonomous AI agents built on open-source control planes. The secret is not replacing humans entirely, but putting humans in the loop at Autonomy Level 1 for high-stakes outbound communication.
+    expected:
+      core_thesis_keywords: ["AI employees", "autonomy", "human in the loop", "scaling"]
+      min_assets: 5
+    evaluator: structure-check
+
+  - id: case-conference-keynote-mcp-plugins
+    name: Repurposing Conference Keynote on Model Context Protocol
+    input:
+      title: "Why Open Standards Win: The Rise of Model Context Protocol"
+      source_type: "keynote_transcript"
+      text: |
+        Proprietary tool-calling standards lock teams into single-vendor ecosystems. Model Context Protocol (MCP) changes this by providing a universal JSON-RPC interface for AI plugins. Whether an agent needs web research, CRM export, or database querying, MCP creates a standardized protocol that works across models and runtimes.
+    expected:
+      core_thesis_keywords: ["Model Context Protocol", "MCP", "open standards", "plugins"]
+      min_assets: 5
+    evaluator: structure-check
+
+  - id: case-incident-postmortem-infinite-loop
+    name: Repurposing Real-World Incident Postmortem
+    input:
+      title: "Postmortem: The $2,400 Infinite Loop Incident"
+      source_type: "incident_postmortem"
+      text: |
+        At 02:14 UTC, our lead enrichment agent encountered an unrecognized HTTP 429 response from an upstream API. Because the agent was deployed without an external budget circuit breaker, it re-prompted itself 1,840 times over 4 hours. By the time on-call engineers woke up, the agent had consumed $2,400 in LLM tokens. Root cause: safety policies and retry limits were placed in the model prompt rather than enforced deterministically in runtime middleware.
+    expected:
+      core_thesis_keywords: ["infinite loop", "budget circuit breaker", "runtime middleware", "postmortem"]
+      min_assets: 5
+    evaluator: structure-check
