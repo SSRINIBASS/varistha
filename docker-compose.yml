@@ -1,0 +1,3 @@
+# Root compose include pointing to deploy/docker-compose.yml
+include:
+  - deploy/docker-compose.yml
