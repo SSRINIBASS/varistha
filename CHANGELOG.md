@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Phase 4 — Evals & Confidence
 
 #### Added
+- `apps/api/src/governance/confidence/`: Verifiable review-priority and confidence engine:
+  - `engine.py`: `ReviewPriorityEngine` calculating multi-source verifiable confidence signals (JSON schema conformity, grounding keyword/citation overlap, offline eval benchmark pass rate, historical human approval rate) and review-priority classifications (`low`, `medium`, `high`, `critical`).
+  - `schemas.py`: Pydantic models `ConfidenceSignal`, `ConfidenceEvaluationRequest`, and `ReviewPriorityOutcome`.
+  - `router.py`: REST endpoint `POST /api/v1/governance/confidence/evaluate`.
+- `apps/api/src/governance/evals/comparator.py`: Version regression comparator:
+  - `compare_eval_runs`: Identifies regressed, improved, unchanged, added, and removed assertions between evaluation runs; computes pass rate delta and execution latency delta.
+  - Endpoint `GET /api/v1/evals/compare` to retrieve version-over-version regression comparison reports.
+- `apps/api/src/registry/gates.py` & `service.py`: Evaluation promotion gate enforcement:
+  - Extended `evaluate_stage_transition` with `eval_runs` evaluation.
+  - Strictly blocks promotion from `prototype` to `staging` unless at least one completed eval run achieves `pass_rate >= min_pass_rate`.
+  - Strictly enforces `eval_score_threshold` against real completed `EvalRun` records for `staging` to `production` promotions.
+  - Queries latest evaluation runs via `shared.db.models.eval` without violating bounded context isolation rules.
+- `docs/adr/0019-review-priority-and-regression-comparator.md`: Architecture Decision Record for review-priority confidence, regression comparator, and promotion gates.
+- `docs/plans/phase-4-task-3-review-priority-and-regression-comparator.md`: Plan and verification record.
 - `apps/api/src/governance/evals/evaluators/`: Builtin evaluator library implementing the `BaseEvaluator` contract:
   - `ExactMatchEvaluator`: Strict value and whitespace-stripped deep equality assertions.
   - `ContainsEvaluator`: Substring, dictionary key-value, and list element presence verification.

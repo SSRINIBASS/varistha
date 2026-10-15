@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from governance.evals import service
+from governance.evals.comparator import EvalComparisonReport, compare_eval_runs
 from governance.evals.schemas import (
     EvalResultCreate,
     EvalRunCreate,
@@ -204,3 +205,31 @@ async def execute_eval_suite(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(err),
         ) from err
+
+
+@router.get(
+    "/compare",
+    response_model=EvalComparisonReport,
+    summary="Compare two evaluation runs to detect regressions",
+)
+async def compare_runs(
+    base_run_id: Annotated[uuid.UUID, Query(description="Base evaluation run UUID")],
+    candidate_run_id: Annotated[uuid.UUID, Query(description="Candidate evaluation run UUID")],
+    db: DbSession,
+) -> EvalComparisonReport:
+    """Compare assertions and metrics between base and candidate evaluation runs."""
+    base_run = await service.get_eval_run(db, base_run_id)
+    if not base_run:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Base eval run '{base_run_id}' not found.",
+        )
+
+    candidate_run = await service.get_eval_run(db, candidate_run_id)
+    if not candidate_run:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Candidate eval run '{candidate_run_id}' not found.",
+        )
+
+    return compare_eval_runs(base_run, candidate_run)

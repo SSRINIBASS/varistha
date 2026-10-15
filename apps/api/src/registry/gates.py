@@ -109,6 +109,7 @@ def evaluate_stage_transition(
     replacement: str | None = None,
     kill_switch_verified: bool | None = None,
     secrets_revoked: bool | None = None,
+    eval_runs: list[dict[str, Any]] | None = None,
 ) -> GateEvaluationResult:
     """Evaluate all required gates for a proposed stage transition."""
     from_stage = from_stage.lower()
@@ -267,23 +268,88 @@ def evaluate_stage_transition(
             ),
         )
 
+        if eval_runs is not None:
+            min_pass_rate = (
+                spec_obj.spec.evals.min_pass_rate
+                if spec_obj and spec_obj.spec.evals and spec_obj.spec.evals.min_pass_rate
+                else 0.8
+            )
+            completed_evals = [e for e in eval_runs if e.get("status") == "completed"]
+            best_rate = max(
+                (float(e.get("pass_rate") or 0.0) for e in completed_evals), default=0.0
+            )
+            eval_passed = bool(completed_evals and best_rate >= min_pass_rate)
+            if eval_passed:
+                eval_msg = (
+                    f"Eval suite executed with passing rate {best_rate:.1%} "
+                    f"(required: {min_pass_rate:.1%})."
+                )
+            elif not completed_evals:
+                eval_msg = (
+                    "No completed evaluation runs found. Must run eval suite before promotion."
+                )
+            else:
+                eval_msg = (
+                    f"Eval suite pass rate {best_rate:.1%} is below required threshold "
+                    f"of {min_pass_rate:.1%}."
+                )
+            checks.append(
+                GateCheck(
+                    name="eval_suite_passed",
+                    passed=eval_passed,
+                    message=eval_msg,
+                )
+            )
+
     # Gate 3: Staging -> Production
     elif from_stage == "staging" and to_stage == "production":
         # Check evals
-        has_evals = False
-        if spec_obj and spec_obj.spec.evals:
-            has_evals = bool(spec_obj.spec.evals.suite and spec_obj.spec.evals.min_pass_rate > 0)
-        checks.append(
-            GateCheck(
-                name="eval_score_threshold",
-                passed=has_evals,
-                message=(
-                    "Eval suite meets threshold criteria."
-                    if has_evals
-                    else "Verified eval suite and passing score required for production."
+        if eval_runs is not None:
+            min_pass_rate = (
+                spec_obj.spec.evals.min_pass_rate
+                if spec_obj and spec_obj.spec.evals and spec_obj.spec.evals.min_pass_rate
+                else 0.8
+            )
+            completed_evals = [e for e in eval_runs if e.get("status") == "completed"]
+            best_rate = max(
+                (float(e.get("pass_rate") or 0.0) for e in completed_evals), default=0.0
+            )
+            evals_met = bool(completed_evals and best_rate >= min_pass_rate)
+            if evals_met:
+                eval_msg = f"Eval score threshold met ({best_rate:.1%} >= {min_pass_rate:.1%})."
+            elif not completed_evals:
+                eval_msg = (
+                    "Verified eval suite run required for production. No completed runs found."
+                )
+            else:
+                eval_msg = (
+                    f"Verified eval suite and passing score required for production "
+                    f"(found: {best_rate:.1%}, required: {min_pass_rate:.1%})."
+                )
+            checks.append(
+                GateCheck(
+                    name="eval_score_threshold",
+                    passed=evals_met,
+                    message=eval_msg,
                 ),
-            ),
-        )
+            )
+        else:
+            has_evals = False
+            if spec_obj and spec_obj.spec.evals:
+                has_evals = bool(
+                    spec_obj.spec.evals.suite and spec_obj.spec.evals.min_pass_rate > 0
+                )
+            checks.append(
+                GateCheck(
+                    name="eval_score_threshold",
+                    passed=has_evals,
+                    message=(
+                        "Eval suite meets threshold criteria."
+                        if has_evals
+                        else "Verified eval suite and passing score required for production."
+                    ),
+                ),
+            )
 
         # Check reviewed / successful runs
         successful_runs = [r for r in runs if r.get("status") in ("success", "completed")]

@@ -6,7 +6,7 @@ import uuid
 from typing import TYPE_CHECKING, Any
 
 from registry.gates import GateEvaluationResult, evaluate_stage_transition
-from shared.db.models import Agent, AgentVersion, Run, StageTransition
+from shared.db.models import Agent, AgentVersion, EvalRun, Run, StageTransition
 from sqlalchemy import func, select
 
 from spec import AgentSpec, validate_spec
@@ -203,11 +203,38 @@ async def evaluate_gates_for_agent(
     secrets_revoked: bool | None = None,
 ) -> GateEvaluationResult:
     """Evaluate whether an agent satisfies the gates to transition to target_stage."""
-    latest_spec = agent.versions[0].spec if agent.versions else None
+    latest_version = None
+    if agent.versions:
+        latest_version = agent.versions[0]
+    else:
+        ver_stmt = (
+            select(AgentVersion)
+            .where(AgentVersion.agent_id == agent.id)
+            .order_by(AgentVersion.created_at.desc())
+            .limit(1)
+        )
+        ver_res = await session.execute(ver_stmt)
+        latest_version = ver_res.scalar_one_or_none()
+
+    latest_spec = latest_version.spec if latest_version else None
 
     stmt = select(Run).where(Run.agent_id == agent.id)
     run_res = await session.execute(stmt)
     runs = [{"status": r.status} for r in run_res.scalars().all()]
+
+    eval_stmt = select(EvalRun).where(
+        EvalRun.agent_id == agent.id,
+        EvalRun.status == "completed",
+    )
+    if latest_version:
+        eval_stmt = eval_stmt.where(
+            (EvalRun.agent_version_id == latest_version.id) | (EvalRun.agent_version_id.is_(None))
+        )
+    eval_res = await session.execute(eval_stmt)
+    eval_runs = [
+        {"status": r.status, "pass_rate": float(r.pass_rate) if r.pass_rate is not None else 0.0}
+        for r in eval_res.scalars().all()
+    ]
 
     return evaluate_stage_transition(
         from_stage=agent.stage,
@@ -218,6 +245,7 @@ async def evaluate_gates_for_agent(
         replacement=replacement,
         kill_switch_verified=kill_switch_verified,
         secrets_revoked=secrets_revoked,
+        eval_runs=eval_runs,
     )
 
 

@@ -6,7 +6,7 @@ import uuid
 from typing import TYPE_CHECKING, Any
 
 import pytest
-from shared.db.models import Run
+from shared.db.models import EvalRun, EvalSuite, Run
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -190,3 +190,83 @@ async def test_rollback_requires_reason(
     # History shows 2 transitions now
     hist_resp = await async_client.get("/api/v1/agents/rollback-agent/history")
     assert len(hist_resp.json()) == 2
+
+
+@pytest.mark.asyncio
+async def test_promote_prototype_to_staging_and_production_with_evals(
+    async_client: AsyncClient,
+    session_factory: async_sessionmaker[AsyncSession],
+) -> None:
+    """Full lifecycle promotion: prototype -> staging -> production gated on evaluation runs."""
+    spec = valid_agent_spec(
+        name="full-cycle-agent",
+        stage="prototype",
+        guardrails={"input": ["pii-redact"], "tools": ["outbound-needs-approval"]},
+        evals={"suite": "./evals/suite.yaml", "min_pass_rate": 0.85},
+        budget={"max_usd_per_run": 0.50, "max_usd_per_day": 10.0},
+    )
+    reg_resp = await async_client.post("/api/v1/agents", json=spec)
+    assert reg_resp.status_code == 201
+    agent_id = uuid.UUID(reg_resp.json()["id"])
+
+    # 1. Prototype -> Staging is blocked before any completed EvalRun exists
+    blocked_resp = await async_client.post(
+        f"/api/v1/agents/{agent_id}/promote",
+        json={"to_stage": "staging", "promoted_by": "qa@example.com"},
+    )
+    assert blocked_resp.status_code == 422
+    err_detail = blocked_resp.json()["detail"]["evaluation"]
+    checks = {c["name"]: c["passed"] for c in err_detail["checks"]}
+    assert checks["eval_suite_passed"] is False
+
+    # 2. Add an EvalSuite and a passing EvalRun (90% >= 85%)
+    async with session_factory() as session:
+        suite = EvalSuite(
+            name="Production Readiness",
+            agent_id=agent_id,
+            config={"assertions": []},
+        )
+        session.add(suite)
+        await session.flush()
+
+        run = EvalRun(
+            suite_id=suite.id,
+            agent_id=agent_id,
+            status="completed",
+            trigger="manual",
+            total_cases=10,
+            passed_cases=9,
+            failed_cases=1,
+            pass_rate=0.90,
+        )
+        session.add(run)
+        await session.commit()
+
+    # 3. Prototype -> Staging now succeeds
+    promote_staging = await async_client.post(
+        f"/api/v1/agents/{agent_id}/promote",
+        json={"to_stage": "staging", "promoted_by": "qa@example.com"},
+    )
+    assert promote_staging.status_code == 200
+    assert promote_staging.json()["agent"]["stage"] == "staging"
+
+    # 4. Staging -> Production requires a verified execution run in staging and kill switch
+    async with session_factory() as session:
+        exec_run = Run(
+            agent_id=agent_id,
+            status="completed",
+            trigger_type="manual",
+        )
+        session.add(exec_run)
+        await session.commit()
+
+    promote_prod = await async_client.post(
+        f"/api/v1/agents/{agent_id}/promote",
+        json={
+            "to_stage": "production",
+            "promoted_by": "secops@example.com",
+            "kill_switch_verified": True,
+        },
+    )
+    assert promote_prod.status_code == 200
+    assert promote_prod.json()["agent"]["stage"] == "production"

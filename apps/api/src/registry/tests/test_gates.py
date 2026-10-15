@@ -263,3 +263,98 @@ def test_rollback_requires_reason() -> None:
     )
     assert result_with_reason.allowed
     assert result_with_reason.is_rollback is True
+
+
+def test_prototype_to_staging_enforces_eval_runs() -> None:
+    """Prototype -> Staging requires passing evaluation run when eval_runs is supplied."""
+    spec = make_spec(
+        stage="prototype",
+        guardrails={"input": ["pii-redact"]},
+        evals={"suite": "./evals/suite.yaml", "min_pass_rate": 0.80},
+    )
+
+    # 1. Blocked when eval_runs is empty list
+    res_empty = evaluate_stage_transition(
+        from_stage="prototype",
+        to_stage="staging",
+        spec_dict=spec,
+        runs=[{"status": "success"}],
+        eval_runs=[],
+    )
+    assert not res_empty.allowed
+    checks_empty = {c.name: c.passed for c in res_empty.checks}
+    assert checks_empty["eval_suite_present"] is True
+    assert checks_empty["eval_suite_passed"] is False
+
+    # 2. Blocked when pass rate is below threshold (0.60 < 0.80)
+    res_failing = evaluate_stage_transition(
+        from_stage="prototype",
+        to_stage="staging",
+        spec_dict=spec,
+        runs=[{"status": "success"}],
+        eval_runs=[{"status": "completed", "pass_rate": 0.60}],
+    )
+    assert not res_failing.allowed
+    checks_failing = {c.name: c.passed for c in res_failing.checks}
+    assert checks_failing["eval_suite_passed"] is False
+
+    # 3. Allowed when pass rate is >= threshold (0.85 >= 0.80)
+    res_passing = evaluate_stage_transition(
+        from_stage="prototype",
+        to_stage="staging",
+        spec_dict=spec,
+        runs=[{"status": "success"}],
+        eval_runs=[{"status": "completed", "pass_rate": 0.85}],
+    )
+    assert res_passing.allowed
+    checks_passing = {c.name: c.passed for c in res_passing.checks}
+    assert checks_passing["eval_suite_passed"] is True
+
+
+def test_staging_to_production_enforces_eval_runs() -> None:
+    """Staging -> Production strictly enforces eval score threshold against eval_runs."""
+    spec = make_spec(
+        stage="staging",
+        guardrails={"tools": ["outbound-needs-approval"]},
+        evals={"suite": "./evals/suite.yaml", "min_pass_rate": 0.85},
+        budget={"max_usd_per_run": 0.50, "max_usd_per_day": 10.0},
+    )
+
+    # 1. Blocked when no completed eval runs exist
+    res_no_eval = evaluate_stage_transition(
+        from_stage="staging",
+        to_stage="production",
+        spec_dict=spec,
+        runs=[{"status": "success"}],
+        kill_switch_verified=True,
+        eval_runs=[],
+    )
+    assert not res_no_eval.allowed
+    checks_no_eval = {c.name: c.passed for c in res_no_eval.checks}
+    assert checks_no_eval["eval_score_threshold"] is False
+
+    # 2. Blocked when eval score is below threshold (0.80 < 0.85)
+    res_sub_threshold = evaluate_stage_transition(
+        from_stage="staging",
+        to_stage="production",
+        spec_dict=spec,
+        runs=[{"status": "success"}],
+        kill_switch_verified=True,
+        eval_runs=[{"status": "completed", "pass_rate": 0.80}],
+    )
+    assert not res_sub_threshold.allowed
+    checks_sub = {c.name: c.passed for c in res_sub_threshold.checks}
+    assert checks_sub["eval_score_threshold"] is False
+
+    # 3. Allowed when eval score meets threshold (0.90 >= 0.85)
+    res_ok = evaluate_stage_transition(
+        from_stage="staging",
+        to_stage="production",
+        spec_dict=spec,
+        runs=[{"status": "success"}],
+        kill_switch_verified=True,
+        eval_runs=[{"status": "completed", "pass_rate": 0.90}],
+    )
+    assert res_ok.allowed
+    checks_ok = {c.name: c.passed for c in res_ok.checks}
+    assert checks_ok["eval_score_threshold"] is True
