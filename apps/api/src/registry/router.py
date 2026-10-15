@@ -11,13 +11,22 @@ from registry.schemas import (
     AgentResponse,
     AgentVersionDetailResponse,
     AgentVersionSummaryResponse,
+    GateCheckResponse,
+    GateEvaluationResponse,
+    PromoteAgentRequest,
+    PromoteAgentResponse,
+    StageTransitionResponse,
 )
 from registry.service import (
     DuplicateVersionError,
+    GateCheckFailedError,
     create_or_update_agent,
+    evaluate_gates_for_agent,
+    get_stage_history,
     get_version,
     list_agents,
     list_versions,
+    promote_agent,
     resolve_agent,
 )
 from shared.db.session import get_db_session
@@ -259,4 +268,173 @@ async def publish_agent_version(
         version=version.version,
         created_at=version.created_at,
         spec=version.spec,
+    )
+
+
+@router.post(
+    "/{id_or_name}/promote",
+    response_model=PromoteAgentResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Promote or transition agent lifecycle stage",
+)
+async def promote_agent_endpoint(
+    id_or_name: str,
+    payload: PromoteAgentRequest,
+    session: DbSession,
+) -> PromoteAgentResponse:
+    """Transition an agent to a new lifecycle stage under gate evaluation."""
+    agent = await resolve_agent(session, id_or_name)
+    if agent is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent '{id_or_name}' not found",
+        )
+
+    try:
+        updated_agent, transition, gate_result = await promote_agent(
+            session=session,
+            agent=agent,
+            to_stage=payload.to_stage,
+            promoted_by=payload.promoted_by,
+            reason=payload.reason,
+            replacement=payload.replacement,
+            kill_switch_verified=payload.kill_switch_verified,
+            secrets_revoked=payload.secrets_revoked,
+        )
+    except GateCheckFailedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail={
+                "detail": str(exc),
+                "evaluation": exc.gate_result.to_dict(),
+            },
+        ) from exc
+
+    latest_spec = updated_agent.versions[0].spec if updated_agent.versions else None
+
+    agent_detail = AgentDetailResponse(
+        id=updated_agent.id,
+        name=updated_agent.name,
+        description=updated_agent.description,
+        owner=updated_agent.owner,
+        stage=updated_agent.stage,
+        current_version=updated_agent.current_version,
+        created_at=updated_agent.created_at,
+        updated_at=updated_agent.updated_at,
+        version_count=len(updated_agent.versions),
+        latest_spec=latest_spec,
+    )
+
+    transition_resp = StageTransitionResponse(
+        id=transition.id,
+        agent_id=transition.agent_id,
+        from_stage=transition.from_stage,
+        to_stage=transition.to_stage,
+        promoted_by=transition.promoted_by,
+        reason=transition.reason,
+        gate_results=transition.gate_results,
+        created_at=transition.created_at,
+    )
+
+    evaluation_resp = GateEvaluationResponse(
+        allowed=gate_result.allowed,
+        from_stage=gate_result.from_stage,
+        to_stage=gate_result.to_stage,
+        is_rollback=gate_result.is_rollback,
+        checks=[
+            GateCheckResponse(name=c.name, passed=c.passed, message=c.message)
+            for c in gate_result.checks
+        ],
+        error_message=gate_result.error_message,
+    )
+
+    return PromoteAgentResponse(
+        agent=agent_detail,
+        transition=transition_resp,
+        evaluation=evaluation_resp,
+    )
+
+
+@router.get(
+    "/{id_or_name}/history",
+    response_model=list[StageTransitionResponse],
+    summary="Get lifecycle stage transition audit history",
+)
+async def get_agent_history_endpoint(
+    id_or_name: str,
+    session: DbSession,
+) -> list[StageTransitionResponse]:
+    """Retrieve the immutable lifecycle stage audit trail for an agent."""
+    agent = await resolve_agent(session, id_or_name)
+    if agent is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent '{id_or_name}' not found",
+        )
+
+    transitions = await get_stage_history(session, agent.id)
+    return [
+        StageTransitionResponse(
+            id=t.id,
+            agent_id=t.agent_id,
+            from_stage=t.from_stage,
+            to_stage=t.to_stage,
+            promoted_by=t.promoted_by,
+            reason=t.reason,
+            gate_results=t.gate_results,
+            created_at=t.created_at,
+        )
+        for t in transitions
+    ]
+
+
+@router.get(
+    "/{id_or_name}/gates/{target_stage}",
+    response_model=GateEvaluationResponse,
+    summary="Dry-run preview of lifecycle promotion gates",
+)
+async def preview_gates_endpoint(
+    id_or_name: str,
+    target_stage: str,
+    session: DbSession,
+    replacement: Annotated[
+        str | None,
+        Query(description="Replacement agent slug (for deprecation preview)."),
+    ] = None,
+    kill_switch_verified: Annotated[
+        bool | None,
+        Query(description="Kill switch test status."),
+    ] = None,
+    secrets_revoked: Annotated[
+        bool | None,
+        Query(description="Secrets revocation status."),
+    ] = None,
+) -> GateEvaluationResponse:
+    """Evaluate promotion gates without mutating agent state (ideal for UI checklists)."""
+    agent = await resolve_agent(session, id_or_name)
+    if agent is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent '{id_or_name}' not found",
+        )
+
+    gate_result = await evaluate_gates_for_agent(
+        session=session,
+        agent=agent,
+        target_stage=target_stage,
+        replacement=replacement,
+        kill_switch_verified=kill_switch_verified,
+        secrets_revoked=secrets_revoked,
+    )
+
+    return GateEvaluationResponse(
+        allowed=gate_result.allowed,
+        from_stage=gate_result.from_stage,
+        to_stage=gate_result.to_stage,
+        is_rollback=gate_result.is_rollback,
+        checks=[
+            GateCheckResponse(name=c.name, passed=c.passed, message=c.message)
+            for c in gate_result.checks
+        ],
+        error_message=gate_result.error_message,
     )

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 2 — Registry and Lifecycle
+
+#### Added
+- `apps/api/src/shared/db/models/stage_transition.py`: `StageTransition` model for immutable audit trail of agent lifecycle changes
+- `apps/api/alembic/versions/0002_stage_transitions.py`: Alembic migration creating `stage_transitions` table with cascade delete and foreign key indexing
+- `apps/api/src/registry/gates.py`: Pure domain gate evaluation engine for lifecycle transitions (`Draft` → `Prototype` → `Staging` → `Production` → `Deprecated` → `Retired`)
+  - Evaluates spec validity, successful execution runs, owner presence, guardrail attachments, eval suite thresholds, budget spend caps, and kill-switch confirmations
+  - Validates rollbacks and demotions with mandatory explanatory reason logging
+- `apps/api/src/registry/router.py`: REST endpoints for lifecycle governance
+  - `POST /api/v1/agents/{id_or_name}/promote`: Evaluate gates, advance agent stage, record immutable audit entry
+  - `GET /api/v1/agents/{id_or_name}/history`: Query chronological stage transition audit history
+  - `GET /api/v1/agents/{id_or_name}/gates/{target_stage}`: Dry-run preview endpoint for live UI checklists
+- `docs/adr/0010-stage-promotion-gates-and-audit-log.md`: Architecture decision record for stage transitions and gates
+- 31 unit and integration tests with 100% service layer coverage and 96% overall monorepo coverage
+
 ### Phase 1 — Walking Skeleton (Week 2-3)
 
 #### Added

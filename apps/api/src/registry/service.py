@@ -5,7 +5,8 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING, Any
 
-from shared.db.models import Agent, AgentVersion
+from registry.gates import GateEvaluationResult, evaluate_stage_transition
+from shared.db.models import Agent, AgentVersion, Run, StageTransition
 from sqlalchemy import func, select
 
 from spec import AgentSpec, validate_spec
@@ -24,6 +25,19 @@ class DuplicateVersionError(Exception):
 
 class VersionNotFoundError(Exception):
     """Raised when a specific version snapshot is not found."""
+
+
+class InvalidStageTransitionError(Exception):
+    """Raised when an invalid stage transition is attempted."""
+
+
+class GateCheckFailedError(Exception):
+    """Raised when an agent fails promotion gate requirements."""
+
+    def __init__(self, gate_result: GateEvaluationResult) -> None:
+        """Initialize gate check failure with the evaluation result."""
+        self.gate_result = gate_result
+        super().__init__(gate_result.error_message or "Promotion gates failed")
 
 
 def is_valid_uuid(val: str) -> bool:
@@ -174,6 +188,90 @@ async def list_versions(
         select(AgentVersion)
         .where(AgentVersion.agent_id == agent_id)
         .order_by(AgentVersion.created_at.desc())
+    )
+    result = await session.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def evaluate_gates_for_agent(
+    session: AsyncSession,
+    agent: Agent,
+    target_stage: str,
+    reason: str | None = None,
+    replacement: str | None = None,
+    kill_switch_verified: bool | None = None,
+    secrets_revoked: bool | None = None,
+) -> GateEvaluationResult:
+    """Evaluate whether an agent satisfies the gates to transition to target_stage."""
+    latest_spec = agent.versions[0].spec if agent.versions else None
+
+    stmt = select(Run).where(Run.agent_id == agent.id)
+    run_res = await session.execute(stmt)
+    runs = [{"status": r.status} for r in run_res.scalars().all()]
+
+    return evaluate_stage_transition(
+        from_stage=agent.stage,
+        to_stage=target_stage,
+        spec_dict=latest_spec,
+        runs=runs,
+        reason=reason,
+        replacement=replacement,
+        kill_switch_verified=kill_switch_verified,
+        secrets_revoked=secrets_revoked,
+    )
+
+
+async def promote_agent(
+    session: AsyncSession,
+    agent: Agent,
+    to_stage: str,
+    promoted_by: str,
+    reason: str | None = None,
+    replacement: str | None = None,
+    kill_switch_verified: bool | None = None,
+    secrets_revoked: bool | None = None,
+) -> tuple[Agent, StageTransition, GateEvaluationResult]:
+    """Evaluate gates and transition agent to target_stage, recording an immutable audit entry."""
+    gate_result = await evaluate_gates_for_agent(
+        session=session,
+        agent=agent,
+        target_stage=to_stage,
+        reason=reason,
+        replacement=replacement,
+        kill_switch_verified=kill_switch_verified,
+        secrets_revoked=secrets_revoked,
+    )
+
+    if not gate_result.allowed:
+        raise GateCheckFailedError(gate_result)
+
+    old_stage = agent.stage
+    agent.stage = to_stage.lower()
+
+    transition = StageTransition(
+        agent_id=agent.id,
+        from_stage=old_stage,
+        to_stage=agent.stage,
+        promoted_by=promoted_by,
+        reason=reason,
+        gate_results=[c.to_dict() for c in gate_result.checks],
+    )
+    session.add(transition)
+    await session.commit()
+    await session.refresh(agent)
+    await session.refresh(transition)
+    return agent, transition, gate_result
+
+
+async def get_stage_history(
+    session: AsyncSession,
+    agent_id: uuid.UUID,
+) -> list[StageTransition]:
+    """Retrieve immutable stage transition audit log for an agent, newest first."""
+    stmt = (
+        select(StageTransition)
+        .where(StageTransition.agent_id == agent_id)
+        .order_by(StageTransition.created_at.desc())
     )
     result = await session.execute(stmt)
     return list(result.scalars().all())

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 from plugins.manifest import PluginManifest
+from pydantic import ValidationError
 
 if TYPE_CHECKING:
     from collections.abc import Callable

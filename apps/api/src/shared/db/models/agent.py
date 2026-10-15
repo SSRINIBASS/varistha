@@ -14,6 +14,7 @@ from sqlalchemy.types import JSON
 
 if TYPE_CHECKING:
     from shared.db.models.run import Run
+    from shared.db.models.stage_transition import StageTransition
 
 
 class Agent(Base, TimestampMixin):
@@ -62,6 +63,13 @@ class Agent(Base, TimestampMixin):
         "Run",
         back_populates="agent",
         cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    stage_transitions: Mapped[list[StageTransition]] = relationship(
+        "StageTransition",
+        back_populates="agent",
+        cascade="all, delete-orphan",
+        order_by="desc(StageTransition.created_at)",
         lazy="selectin",
     )
 
