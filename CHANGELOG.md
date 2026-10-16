@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Phase 7 — Docs, Packaging and Launch
 
+- `scripts/install.sh`: One-line automated installation script for Linux and macOS (`curl -fsSL https://get.varistha.dev/install.sh | bash`), verifying git, docker, and python/uv, cloning repository, provisioning `deploy/.env`, and installing the `varistha` CLI.
+- `scripts/install.ps1`: One-line automated installation script for Windows PowerShell (`irm https://get.varistha.dev/install.ps1 | iex`), verifying system prerequisites, configuring environment, and installing the `varistha` CLI.
+- `packages/cli/tests/test_packaging_and_scripts.py`: Automated test suite validating CLI version output (`varistha --version`), subcommands help catalog (`init`, `apply`, `run`, `diff`, `approvals`, `budget`, `kill`, `resume`, `emergency-stop`, `policies`, `eval`), and installation script integrity.
 - `README.md`: Flagship open-source control plane landing page with badges, ASCII architecture flow diagram, core capabilities breakdown (Build, Run, Govern), 5-minute quickstart, CLI workflow, role packs showcase, and security disclosures.
 - `CONTRIBUTING.md`: Expanded contributor guidelines including bounded context architecture rules, outside-the-model enforcement principles, OSI-approved license constraints, and pre-PR verification gates.
 - `.github/pull_request_template.md`: Added verification item for OSI-approved licenses on all new dependencies.
