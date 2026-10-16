@@ -30,6 +30,8 @@ services:
       LITELLM_API_KEY: ${LITELLM_API_KEY:-}
       ENVIRONMENT: ${ENVIRONMENT:-development}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-varistha-api}
     ports:
       - "${API_PORT:-8000}:8000"
     depends_on:
@@ -54,6 +56,8 @@ services:
       LITELLM_API_KEY: ${LITELLM_API_KEY:-}
       ENVIRONMENT: ${ENVIRONMENT:-development}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-varistha-worker}
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,6 +78,30 @@ services:
       api:
         condition: service_healthy
 
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.111.0
+    container_name: varistha-otel-collector
+    restart: unless-stopped
+    profiles:
+      - otel
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    environment:
+      VARISTHA_API_URL: ${VARISTHA_API_URL:-http://api:8000}
+      LANGFUSE_HOST: ${LANGFUSE_HOST:-http://langfuse:3000}
+      LANGFUSE_AUTH_HEADER: ${LANGFUSE_AUTH_HEADER:-}
+      TEMPO_OTLP_ENDPOINT: ${TEMPO_OTLP_ENDPOINT:-tempo:4317}
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8888:8888"
+      - "13133:13133"
+    depends_on:
+      api:
+        condition: service_healthy
+
 volumes:
   postgres_data:
     name: varistha_postgres_data
+

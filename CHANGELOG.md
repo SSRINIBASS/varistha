@@ -33,6 +33,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `checklist.md`: Operational production readiness checklist auditing authentication, encryption at rest, untrusted output quarantine, SSRF denylists, and compliance guardrails.
 - `apps/api/src/shared/guardrails/builtin/injection.py`: Strengthened override patterns to detect system instruction overrides, delimiter tampering, and rules circumvention.
 - `apps/api/src/shared/tests/test_security_audit.py`: End-to-end automated security verification suite testing all 7 core invariants (SSRF IP matrix, prompt injection quarantine, outbound approval enforcement, zero-secret telemetry redaction, AES-256-GCM tamper defense, vault zero-leakage, and RBAC boundary denial).
+- `deploy/otel-collector-config.yaml`: CNCF OpenTelemetry Collector Contrib configuration routing OTLP traces (gRPC :4317, HTTP :4318) through memory limiters and batch processors, fanning out to Varistha (`/v1/traces`), Langfuse, and Grafana Tempo.
+- `deploy/docker-compose.yml` & `deploy/docker-compose.otel.yml`: Added optional `otel` Compose profile so that default `docker compose up` strictly retains 4 core containers while `docker compose --profile otel up` launches the OTel Collector.
+- `deploy/.env.example`: Documented external observability fan-out variables (`OTEL_EXPORTER_OTLP_ENDPOINT`, `LANGFUSE_HOST`, `LANGFUSE_AUTH_HEADER`, `TEMPO_OTLP_ENDPOINT`).
+- `apps/api/src/shared/telemetry/`: Added OTLP HTTP batch exporter attachment (`opentelemetry-exporter-otlp-proto-http`) to `init_tracer_provider()`, supporting `OTEL_EXPORTER_OTLP_ENDPOINT` with graceful fallbacks.
+- `docs/observability/otel-fanout.md`: Full architecture, integration guides, and zero-leakage telemetry redaction documentation.
+- `apps/api/src/shared/tests/`: Added unit test suites `test_otel_collector_config.py` and `test_telemetry_export.py`.
+
 
 ### Phase 5 — Plugin Ecosystem & Role Packs
 

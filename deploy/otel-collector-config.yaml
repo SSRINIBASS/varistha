@@ -1,0 +1,69 @@
+# =============================================================================
+# Varistha OpenTelemetry Collector Configuration
+# Fans out incoming GenAI OTLP traces to Varistha Control Plane and optional
+# external observability backends (Langfuse, Grafana Tempo, SigNoz).
+# =============================================================================
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Protect collector against memory spikes
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 75
+    spike_limit_percentage: 20
+
+  # Batch spans to improve throughput and reduce HTTP/gRPC overhead
+  batch:
+    send_batch_size: 256
+    timeout: 1s
+
+exporters:
+  # Console debug logging for local trace inspection
+  debug:
+    verbosity: basic
+
+  # Fan-out to Varistha's built-in OTLP receiver (local Postgres storage)
+  otlphttp/varistha:
+    endpoint: ${VARISTHA_API_URL:-http://api:8000}/v1/traces
+    tls:
+      insecure: true
+
+  # Optional fan-out to Langfuse (OTLP HTTP endpoint)
+  # Set LANGFUSE_HOST and LANGFUSE_AUTH_HEADER in .env
+  otlphttp/langfuse:
+    endpoint: ${LANGFUSE_HOST:-http://langfuse:3000}/api/public/otel/v1/traces
+    headers:
+      Authorization: Basic ${LANGFUSE_AUTH_HEADER:-}
+    tls:
+      insecure: true
+
+  # Optional fan-out to Grafana Tempo (OTLP gRPC)
+  # Set TEMPO_OTLP_ENDPOINT in .env (e.g., tempo:4317)
+  otlp/tempo:
+    endpoint: ${TEMPO_OTLP_ENDPOINT:-tempo:4317}
+    tls:
+      insecure: true
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, otlphttp/varistha]
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      address: 0.0.0.0:8888

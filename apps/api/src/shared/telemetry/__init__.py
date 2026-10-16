@@ -33,7 +33,12 @@ from shared.telemetry.recorder import (
     span_to_db_model,
 )
 from shared.telemetry.redaction import redact_attributes, redact_string, redact_value
-from shared.telemetry.setup import add_span_processor, get_tracer, init_tracer_provider
+from shared.telemetry.setup import (
+    add_span_processor,
+    get_tracer,
+    init_tracer_provider,
+    reset_tracer_provider,
+)
 
 __all__ = [
     "GEN_AI_OUTPUT_TYPE",
@@ -66,6 +71,7 @@ __all__ = [
     "redact_attributes",
     "redact_string",
     "redact_value",
+    "reset_tracer_provider",
     "save_captured_spans",
     "span_to_db_model",
 ]
