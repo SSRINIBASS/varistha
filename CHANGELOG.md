@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 7 — Docs, Packaging and Launch
+
+- `README.md`: Flagship open-source control plane landing page with badges, ASCII architecture flow diagram, core capabilities breakdown (Build, Run, Govern), 5-minute quickstart, CLI workflow, role packs showcase, and security disclosures.
+- `CONTRIBUTING.md`: Expanded contributor guidelines including bounded context architecture rules, outside-the-model enforcement principles, OSI-approved license constraints, and pre-PR verification gates.
+- `.github/pull_request_template.md`: Added verification item for OSI-approved licenses on all new dependencies.
+- `.github/ISSUE_TEMPLATE/plugin_proposal.yml`: Added GitHub issue template for community MCP plugin proposals with license and autonomy risk categorization.
+- `.github/workflows/release.yml`: Automated CI/CD release workflow triggered on `v*` tags building multi-arch Docker container images (`api`, `worker`, `ui`) pushed to GitHub Container Registry (GHCR) and Python distribution wheels for PyPI.
+- `apps/api/src/shared/tests/test_repo_hygiene.py`: Automated test suite validating open-source licensing (Apache-2.0 across all packages), presence of mandatory hygiene documentation, issue templates YAML validity, and release workflow integrity.
+
 ### Phase 6 — Hardening, Security, Auth & OTel Fan-Out
 
 - `apps/api/src/identity/`: Multi-user RBAC system (`admin`, `operator`, `viewer`) with API key authentication:

@@ -1,0 +1,52 @@
+name: Plugin Proposal
+description: Propose a new MCP plugin or integration for Varistha
+title: "[PLUGIN] "
+labels: ["plugin", "proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Varistha capabilities are delivered as MCP plugins. Propose a new plugin to expand what AI agents can do.
+        Note: Core plugins must be licensed under OSI-approved licenses (e.g. Apache-2.0, MIT, BSD).
+  - type: input
+    id: plugin_name
+    attributes:
+      label: Plugin Name
+      description: Proposed unique plugin identifier (e.g., slack-notify, github-issues, postgres-query)
+      placeholder: "e.g. github-issues"
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Capability Summary
+      description: What actions or tools does this plugin expose over MCP?
+      placeholder: "Exposes tools to search issues, read PR diffs, and create draft comments."
+    validations:
+      required: true
+  - type: dropdown
+    id: autonomy_risk
+    attributes:
+      label: Autonomy & Risk Profile
+      description: Does this plugin perform write/outbound actions requiring human approval?
+      options:
+        - "Read-only (L1+ without approval)"
+        - "Outbound / Write action (Mandatory approval at L1 and below)"
+        - "Privileged administrative action"
+    validations:
+      required: true
+  - type: input
+    id: license
+    attributes:
+      label: License
+      description: Must be OSI-approved for core plugins (Apache-2.0, MIT, BSD)
+      placeholder: "Apache-2.0"
+    validations:
+      required: true
+  - type: textarea
+    id: security_considerations
+    attributes:
+      label: Security Considerations
+      description: Describe input validation, SSRF safeguards, credential handling, or rate limits.
+    validations:
+      required: false
