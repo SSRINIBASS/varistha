@@ -70,6 +70,8 @@ ignore = [
 "**/tests/**" = ["S101", "D103", "D100"]  # Allow assert, no docstrings in tests
 "plugins/**" = ["N999"]  # Allow hyphenated plugin directory names (e.g. web-fetch)
 
+
+
 [tool.ruff.lint.flake8-type-checking]
 runtime-evaluated-base-classes = ["pydantic.BaseModel"]
 

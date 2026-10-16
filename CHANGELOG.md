@@ -39,6 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `apps/api/src/shared/telemetry/`: Added OTLP HTTP batch exporter attachment (`opentelemetry-exporter-otlp-proto-http`) to `init_tracer_provider()`, supporting `OTEL_EXPORTER_OTLP_ENDPOINT` with graceful fallbacks.
 - `docs/observability/otel-fanout.md`: Full architecture, integration guides, and zero-leakage telemetry redaction documentation.
 - `apps/api/src/shared/tests/`: Added unit test suites `test_otel_collector_config.py` and `test_telemetry_export.py`.
+- `apps/api/src/runtime/tests/test_concurrency_load.py`: High-concurrency automated test suite validating 10+ concurrent agents executing runs, writing spans, triggering approval interrupts, and maintaining strict contextvar trace isolation under parallel bursts.
+- `scripts/load_test_concurrency.py`: Standalone CLI benchmarking tool with asynchronous worker pool, latency percentile analysis (p50, p90, p95, p99), and throughput measurement.
+- `docs/benchmarks/load-test-concurrency.md`: Formal concurrency benchmark report certifying the Phase 6 exit criterion (10 concurrent agents stable).
+
+
 
 
 ### Phase 5 — Plugin Ecosystem & Role Packs
