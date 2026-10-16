@@ -67,8 +67,15 @@ class LangGraphRuntime:
                         "model": state["model"],
                         "messages": state["messages"],
                         "timeout": self.default_timeout_seconds,
+                        "num_retries": 2,
                     }
-                    keys = ("OPENAI_API_KEY", "LITELLM_API_KEY", "ANTHROPIC_API_KEY")
+                    keys = (
+                        "OPENAI_API_KEY",
+                        "LITELLM_API_KEY",
+                        "ANTHROPIC_API_KEY",
+                        "GEMINI_API_KEY",
+                        "GROQ_API_KEY",
+                    )
                     if not any(os.getenv(k) for k in keys):
                         query = state["messages"][-1]["content"] if state["messages"] else "Task"
                         mock_body = {
@@ -105,10 +112,16 @@ class LangGraphRuntime:
                     span.set_attribute(VARISTHA_COST_USD, cost)
                     span.set_status(trace.StatusCode.OK)
 
-                    # Try parsing structured JSON if applicable, otherwise wrap text
                     parsed_output: dict[str, Any]
+                    clean = (
+                        content.strip()
+                        .removeprefix("```json")
+                        .removeprefix("```")
+                        .removesuffix("```")
+                        .strip()
+                    )
                     try:
-                        parsed = json.loads(content)
+                        parsed = json.loads(clean)
                         parsed_output = parsed if isinstance(parsed, dict) else {"response": parsed}
                     except (json.JSONDecodeError, TypeError):
                         parsed_output = {"response": content}
@@ -136,18 +149,15 @@ class LangGraphRuntime:
 
     async def execute(self, context: RunContext) -> RunResult:
         """Execute the agent run context using the compiled LangGraph."""
-        # Prepare messages
-        messages: list[dict[str, str]] = []
-        if context.instructions:
-            messages.append({"role": "system", "content": context.instructions})
-
-        # Add user prompt / input payload
-        prompt_content = (
+        messages: list[dict[str, str]] = (
+            [{"role": "system", "content": context.instructions}] if context.instructions else []
+        )
+        prompt_val = (
             context.input_data.get("prompt")
             or context.input_data.get("query")
             or json.dumps(context.input_data)
         )
-        messages.append({"role": "user", "content": str(prompt_content)})
+        messages.append({"role": "user", "content": str(prompt_val)})
 
         initial_state: AgentState = {
             "instructions": context.instructions,
@@ -242,10 +252,7 @@ class LangGraphRuntime:
                     hook=PolicyHook.OUTPUT,
                 )
                 output_guardrail_res = await default_policy_engine.evaluate(
-                    output_policies,
-                    hook=PolicyHook.OUTPUT,
-                    data=output,
-                    context=policy_ctx,
+                    output_policies, hook=PolicyHook.OUTPUT, data=output, context=policy_ctx
                 )
                 if (
                     not output_guardrail_res.passed

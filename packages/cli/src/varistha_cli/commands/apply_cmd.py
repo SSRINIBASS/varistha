@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any
 
 import click
 import yaml
@@ -61,7 +62,14 @@ def apply_command(ctx: click.Context, file_path: str) -> None:
         sys.exit(1)
 
     # Convert to dictionary for API payload
-    raw_spec: dict[str, object] = yaml.safe_load(content)  # pyright: ignore[reportAssignmentType]
+    raw_spec: dict[str, Any] = yaml.safe_load(content)  # pyright: ignore[reportAssignmentType]
+    if isinstance(raw_spec.get("spec"), dict):
+        instr = raw_spec["spec"].get("instructions")
+        if isinstance(instr, str) and instr.endswith((".md", ".txt")):
+            instr_path = target.parent / instr
+            if instr_path.exists():
+                raw_spec["spec"]["instructions"] = instr_path.read_text(encoding="utf-8")
+
     agent_name = spec_obj.metadata.name
     version = spec_obj.metadata.version
 

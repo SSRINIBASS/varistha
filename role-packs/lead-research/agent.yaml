@@ -4,15 +4,15 @@ metadata:
   name: lead-researcher
   owner: sales-ops@varistha.ai
   stage: prototype
-  version: 0.1.0
+  version: 0.4.0
 spec:
   role: >
     Autonomous B2B Lead Researcher and ICP Qualifier that discovers company intelligence,
     evaluates ideal customer profile alignment, identifies key decision-makers, and
     structures enriched lead data for CRM ingestion.
   model:
-    primary: gpt-4o-mini
-    fallback: gpt-3.5-turbo
+    primary: gemini/gemini-3.5-flash
+    fallback: gemini/gemini-3.8-flash
   instructions: prompts/system.md
   plugins:
     - name: web-search

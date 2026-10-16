@@ -39,7 +39,7 @@ def _safe_details(resp: httpx.Response) -> Any:
 class VaristhaClient:
     """Client for Varistha REST API."""
 
-    def __init__(self, base_url: str = "http://localhost:8000", timeout: float = 30.0) -> None:
+    def __init__(self, base_url: str = "http://localhost:8000", timeout: float = 120.0) -> None:
         """Initialize client with base URL."""
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
