@@ -41,7 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `apps/api/src/shared/tests/`: Added unit test suites `test_otel_collector_config.py` and `test_telemetry_export.py`.
 - `apps/api/src/runtime/tests/test_concurrency_load.py`: High-concurrency automated test suite validating 10+ concurrent agents executing runs, writing spans, triggering approval interrupts, and maintaining strict contextvar trace isolation under parallel bursts.
 - `scripts/load_test_concurrency.py`: Standalone CLI benchmarking tool with asynchronous worker pool, latency percentile analysis (p50, p90, p95, p99), and throughput measurement.
-- `docs/benchmarks/load-test-concurrency.md`: Formal concurrency benchmark report certifying the Phase 6 exit criterion (10 concurrent agents stable).
+- `docs/runbooks/backup-and-restore.md`: Production runbook for PostgreSQL & pgvector backup, point-in-time recovery, Alembic migration verification, and master encryption key disaster recovery.
+- `scripts/backup_postgres.sh`: Automated backup script for PostgreSQL and pgvector with SHA-256 checksum generation.
+- `docs/checkpoints/2026-10-16-phase-6-complete.md`: Formal Phase 6 checkpoint document certifying all Phase 6 exit criteria are satisfied (git tag `phase-6-complete`).
+
 
 
 
