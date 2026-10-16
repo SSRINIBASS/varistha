@@ -33,6 +33,7 @@ def test_alembic_migrations_upgrade_and_downgrade(tmp_path: Path) -> None:
     assert "agent_versions" in table_names
     assert "runs" in table_names
     assert "spans" in table_names
+    assert "api_keys" in table_names
     assert "alembic_version" in table_names
 
     # Check columns on agents table
@@ -48,6 +49,18 @@ def test_alembic_migrations_upgrade_and_downgrade(tmp_path: Path) -> None:
         "updated_at",
     }.issubset(columns)
 
+    # Check columns on api_keys table
+    api_key_cols = {c["name"] for c in inspector.get_columns("api_keys")}
+    assert {
+        "id",
+        "name",
+        "prefix",
+        "key_hash",
+        "role",
+        "created_at",
+        "updated_at",
+    }.issubset(api_key_cols)
+
     # 2. Downgrade to base
     command.downgrade(alembic_cfg, "base")
     inspector = inspect(engine)
@@ -57,6 +70,7 @@ def test_alembic_migrations_upgrade_and_downgrade(tmp_path: Path) -> None:
     assert "agent_versions" not in tables_after_downgrade
     assert "runs" not in tables_after_downgrade
     assert "spans" not in tables_after_downgrade
+    assert "api_keys" not in tables_after_downgrade
 
     # 3. Upgrade back to head to verify idempotency
     command.upgrade(alembic_cfg, "head")

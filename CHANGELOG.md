@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Phase 6 — Hardening, Security, Auth & OTel Fan-Out
+
+- `apps/api/src/identity/`: Multi-user RBAC system (`admin`, `operator`, `viewer`) with API key authentication:
+  - `models.py`: `Role` enumeration with strict hierarchy (`admin` > `operator` > `viewer`) and `Identity` representation with `has_role` permission checks.
+  - `schemas.py`: Pydantic request/response schemas (`CreateApiKeyRequest`, `ApiKeyResponse`, `CreatedApiKeyResponse`, `CurrentIdentityResponse`).
+  - `service.py`: High-entropy token generation (`var_live_` prefix + 32-byte secret), SHA-256 constant-time hashing, key creation, listing, revocation, and authentication verification.
+  - `dependencies.py`: Request authentication supporting `X-API-Key` and `Authorization: Bearer <key>` headers, with automated development-admin fallback when `auth_enabled=False` and strict denial when `auth_enabled=True`. Dependency factory `require_role(minimum_role)`.
+  - `router.py`: REST routes for API key management (`POST /api/v1/auth/keys`, `GET /api/v1/auth/keys`, `DELETE /api/v1/auth/keys/{id}`, `GET /api/v1/auth/me`).
+  - `tests/test_auth.py`: Comprehensive test suite for key generation, role hierarchy comparisons, database lifecycle, RBAC endpoints, and auth-enabled enforcement.
+- `apps/api/src/shared/db/models/identity.py`: `ApiKey` SQLAlchemy model with indexed prefix and hash, role assignment, expiration, revocation, and active status tracking.
+- `apps/api/alembic/versions/0006_identity_and_api_keys.py`: Alembic migration creating `api_keys` table with indexes on `prefix` and `key_hash`.
+
 ### Phase 5 — Plugin Ecosystem & Role Packs
 
 - `apps/api/src/plugins/`: Plugin manifest registry and capability discovery API:

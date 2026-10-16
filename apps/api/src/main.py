@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from governance.router import router as governance_router
+from identity.router import router as identity_router
 from observability.router import router as observability_router
 from plugins.router import router as plugins_router
 from registry.router import router as registry_router
@@ -31,6 +32,7 @@ app.include_router(runtime_router)
 app.include_router(observability_router)
 app.include_router(governance_router)
 app.include_router(plugins_router)
+app.include_router(identity_router)
 
 
 @app.get("/health", tags=["system"])

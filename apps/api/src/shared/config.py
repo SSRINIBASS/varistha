@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     secret_key: str = "dev-secret-key-change-in-production"  # noqa: S105
     environment: str = "development"
     log_level: str = "info"
+    auth_enabled: bool = False
 
 
 @lru_cache
