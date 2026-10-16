@@ -5,10 +5,13 @@ All notable changes to Varistha will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] - 2026-10-16
+
+Initial public release of Varistha: an open-source, self-hostable control plane to build, run, monitor, and govern autonomous AI agents (AI employees) for startups.
 
 ### Phase 7 — Docs, Packaging and Launch
 
+- `docs/checkpoints/2026-10-16-phase-7-complete.md`: Formal Phase 7 completion checkpoint certifying all seven phases of Varistha and authorizing release tags `v0.1.0` and `phase-7-complete`.
 - `docs/launch/launch-playbook.md`: Comprehensive public launch kit including core positioning narrative, Hacker News "Show HN" copy and story lead, Reddit posts for `r/selfhosted` and `r/LocalLLaMA`, Product Hunt launch kit, social media launch threads, and community feedback triage protocols.
 - `docs/ROADMAP.md`: Public architectural roadmap for Varistha detailing upcoming releases: v0.2.0 (Hatchet/Temporal distributed runtime adapters, Slack/Discord MCP plugins), v0.3.0 (Kubernetes Helm chart, diff-to-eval synthesis), and v1.0.0 (collaborative multi-agent collective and continuous red-teaming).
 - `apps/api/src/shared/tests/test_launch_assets.py`: Automated test suite validating launch playbook copies, channel sections, quickstart references, and roadmap milestone integrity.
