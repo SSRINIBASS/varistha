@@ -12,7 +12,16 @@ from identity.schemas import (
     ApiKeyResponse,
     CreateApiKeyRequest,
     CreatedApiKeyResponse,
+    CreateSecretRequest,
     CurrentIdentityResponse,
+    SecretMetadataResponse,
+    SecretValueResponse,
+)
+from identity.secrets_service import (
+    delete_secret,
+    list_secrets,
+    resolve_secret,
+    store_secret,
 )
 from identity.service import create_api_key, list_api_keys, revoke_api_key
 from shared.db.session import get_db_session
@@ -108,3 +117,88 @@ async def get_me(
         role=current_identity.role,
         api_key_id=current_identity.api_key_id,
     )
+
+
+@router.post(
+    "/secrets",
+    response_model=SecretMetadataResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Store or update a secret in the encrypted vault (Admin only)",
+)
+async def create_or_update_secret(
+    request: CreateSecretRequest,
+    _: Annotated[Identity, Depends(require_role(Role.ADMIN))],
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> SecretMetadataResponse:
+    """Store or rotate a secret value encrypted at rest using AES-256-GCM."""
+    record = await store_secret(db, request)
+    return SecretMetadataResponse(
+        id=record.id,
+        name=record.name,
+        description=record.description,
+        created_at=record.created_at,
+        updated_at=record.updated_at,
+    )
+
+
+@router.get(
+    "/secrets",
+    response_model=list[SecretMetadataResponse],
+    summary="List all stored secrets metadata (Operator or Admin)",
+)
+async def list_vault_secrets(
+    _: Annotated[Identity, Depends(require_role(Role.OPERATOR))],
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> list[SecretMetadataResponse]:
+    """Retrieve metadata of all stored secrets without exposing decrypted values."""
+    records = await list_secrets(db)
+    return [
+        SecretMetadataResponse(
+            id=r.id,
+            name=r.name,
+            description=r.description,
+            created_at=r.created_at,
+            updated_at=r.updated_at,
+        )
+        for r in records
+    ]
+
+
+@router.get(
+    "/secrets/{name}",
+    response_model=SecretValueResponse,
+    summary="Retrieve decrypted secret value (Admin only)",
+)
+async def get_vault_secret(
+    name: str,
+    _: Annotated[Identity, Depends(require_role(Role.ADMIN))],
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> SecretValueResponse:
+    """Decrypt and return the stored secret value."""
+    val = await resolve_secret(db, name)
+    if val is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Secret '{name}' not found in vault.",
+        )
+    return SecretValueResponse(name=name, value=val)
+
+
+@router.delete(
+    "/secrets/{name}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete a secret from the vault (Admin only)",
+)
+async def delete_vault_secret(
+    name: str,
+    _: Annotated[Identity, Depends(require_role(Role.ADMIN))],
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> dict[str, str | bool]:
+    """Remove a secret from the vault permanently."""
+    deleted = await delete_secret(db, name)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Secret '{name}' not found.",
+        )
+    return {"deleted": True, "name": name}

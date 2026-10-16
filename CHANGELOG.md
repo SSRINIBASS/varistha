@@ -16,8 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `dependencies.py`: Request authentication supporting `X-API-Key` and `Authorization: Bearer <key>` headers, with automated development-admin fallback when `auth_enabled=False` and strict denial when `auth_enabled=True`. Dependency factory `require_role(minimum_role)`.
   - `router.py`: REST routes for API key management (`POST /api/v1/auth/keys`, `GET /api/v1/auth/keys`, `DELETE /api/v1/auth/keys/{id}`, `GET /api/v1/auth/me`).
   - `tests/test_auth.py`: Comprehensive test suite for key generation, role hierarchy comparisons, database lifecycle, RBAC endpoints, and auth-enabled enforcement.
-- `apps/api/src/shared/db/models/identity.py`: `ApiKey` SQLAlchemy model with indexed prefix and hash, role assignment, expiration, revocation, and active status tracking.
-- `apps/api/alembic/versions/0006_identity_and_api_keys.py`: Alembic migration creating `api_keys` table with indexes on `prefix` and `key_hash`.
+- `apps/api/src/shared/crypto.py`: Authenticated AES-256-GCM symmetric encryption at rest:
+  - HKDF-SHA256 deterministic master key derivation from `secret_key` or explicit `encryption_key`.
+  - Nonce generation using cryptographically secure random bytes (96-bit unique IV per operation).
+  - Versioned ciphertext serialization (`v1:<base64(nonce + ciphertext + tag)>`) with tamper detection and typed exceptions (`CryptoError`, `DecryptionError`).
+  - Unit tests verifying deterministic key derivation, roundtrip encryption, unique nonces, tamper resistance, and associated data verification (`apps/api/src/shared/tests/test_crypto.py`).
+- `apps/api/src/shared/db/models/secrets.py`: `Secret` SQLAlchemy model for encrypted secrets vault with indexed unique name, encrypted ciphertext payload, description, and audit timestamps.
+- `apps/api/alembic/versions/0007_secrets_vault.py`: Alembic migration creating `secrets` table with unique index on `name`.
+- `apps/api/src/identity/`: Secrets management service and REST endpoints:
+  - `secrets_service.py`: `store_secret`, `resolve_secret`, `list_secrets`, and `delete_secret` with seamless AES-256-GCM encryption/decryption.
+  - `schemas.py`: `CreateSecretRequest`, `SecretMetadataResponse` (securely omitting secret values), and `SecretValueResponse`.
+  - `router.py`: REST routes `POST /api/v1/auth/secrets` (Admin only), `GET /api/v1/auth/secrets` (Operator/Admin), `GET /api/v1/auth/secrets/{name}` (Admin only), and `DELETE /api/v1/auth/secrets/{name}` (Admin only).
+  - `tests/test_secrets.py`: Integration and RBAC test suite validating vault lifecycle, encrypted at rest storage, zero-leak metadata listings, and role boundary enforcement.
 
 ### Phase 5 — Plugin Ecosystem & Role Packs
 

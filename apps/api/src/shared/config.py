@@ -20,6 +20,7 @@ class Settings(BaseSettings):
         "postgresql+asyncpg://varistha:varistha_dev_password@localhost:5432/varistha"
     )
     secret_key: str = "dev-secret-key-change-in-production"  # noqa: S105
+    encryption_key: str | None = None
     environment: str = "development"
     log_level: str = "info"
     auth_enabled: bool = False

@@ -49,3 +49,34 @@ class CurrentIdentityResponse(BaseModel):
     name: str
     role: Role
     api_key_id: uuid.UUID | None = None
+
+
+class CreateSecretRequest(BaseModel):
+    """Payload to store or update a secret in the encrypted vault."""
+
+    name: str = Field(
+        ...,
+        min_length=1,
+        max_length=128,
+        pattern=r"^[a-zA-Z0-9_\-\.]+$",
+        description="Unique identifier name for the secret",
+    )
+    value: str = Field(..., min_length=1, description="Secret plaintext value to encrypt at rest")
+    description: str | None = Field(default=None, max_length=256)
+
+
+class SecretMetadataResponse(BaseModel):
+    """Metadata of a stored secret, omitting the secret value."""
+
+    id: uuid.UUID
+    name: str
+    description: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class SecretValueResponse(BaseModel):
+    """Decrypted secret value."""
+
+    name: str
+    value: str

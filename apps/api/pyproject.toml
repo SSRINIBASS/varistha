@@ -17,6 +17,7 @@ dependencies = [
     "opentelemetry-sdk>=1.28.0",
     "opentelemetry-instrumentation-fastapi>=0.49b0",
     "langgraph>=0.2.0",
+    "cryptography>=50.0.2",
 ]
 
 [build-system]
