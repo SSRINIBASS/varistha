@@ -481,12 +481,14 @@ class VaristhaClient:
         eval_type: str = "offline",
     ) -> dict[str, Any]:
         """Create a new evaluation suite."""
+        suite_config = dict(config)
+        if eval_type and "eval_type" not in suite_config:
+            suite_config["eval_type"] = eval_type
         payload = {
             "agent_id": agent_id,
             "name": name,
             "description": description,
-            "config": config,
-            "eval_type": eval_type,
+            "config": suite_config,
         }
         try:
             with self.client() as http_client:

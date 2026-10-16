@@ -22,6 +22,9 @@ if TYPE_CHECKING:
 @event.listens_for(Pool, "connect")
 def _set_sqlite_pragma(dbapi_connection: Any, connection_record: Any) -> None:
     """Enable foreign key support for SQLite connections."""
+    conn_type = type(dbapi_connection).__module__
+    if "sqlite" not in conn_type.lower():
+        return
     if hasattr(dbapi_connection, "_connection") and hasattr(dbapi_connection._connection, "_conn"):
         with contextlib.suppress(Exception):
             dbapi_connection._connection._conn.execute("PRAGMA foreign_keys=ON")
