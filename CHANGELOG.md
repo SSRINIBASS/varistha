@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Phase 7 — Docs, Packaging and Launch
 
+- `docs/guides/`: Complete operator and developer documentation suite:
+  - `quickstart.md`: 5-minute quickstart from zero dependencies to running first agent with approval and OTel trace stream.
+  - `concepts.md`: Deep dive on Three Pillars (Build, Run, Govern), Lifecycle stages (Draft, Prototype, Staging, Production, Deprecated, Retired), Autonomy levels (L0 to L4), Policy Engine, and Spending Limits.
+  - `role-packs.md`: Operational guide to prebuilt AI employee packs (`lead-research`, `competitor-intel`, `outbound-sdr`, `support-responder`, `content-repurposer`, `lead-qualifier`, `chief-of-staff`) and custom pack authoring.
+  - `plugin-authoring.md`: Architecture guide for creating Model Context Protocol (MCP) plugins, manifest schemas, SSRF defenses, and untrusted data labeling.
+  - `production-hardening.md`: Production deployment guide covering Caddy/Nginx reverse proxy, TLS termination, AES-256-GCM encryption at rest, automated backup crons, and emergency kill switches.
+  - `api-reference.md`: Comprehensive REST API documentation organized by bounded context (Registry, Runtime, Governance, Identity/Auth, Plugins).
+- `apps/api/src/shared/tests/test_docs_integrity.py`: Automated test suite ensuring documentation suite completeness, proper markdown H1 formatting, and resolving relative links.
+
 - `scripts/install.sh`: One-line automated installation script for Linux and macOS (`curl -fsSL https://get.varistha.dev/install.sh | bash`), verifying git, docker, and python/uv, cloning repository, provisioning `deploy/.env`, and installing the `varistha` CLI.
 - `scripts/install.ps1`: One-line automated installation script for Windows PowerShell (`irm https://get.varistha.dev/install.ps1 | iex`), verifying system prerequisites, configuring environment, and installing the `varistha` CLI.
 - `packages/cli/tests/test_packaging_and_scripts.py`: Automated test suite validating CLI version output (`varistha --version`), subcommands help catalog (`init`, `apply`, `run`, `diff`, `approvals`, `budget`, `kill`, `resume`, `emergency-stop`, `policies`, `eval`), and installation script integrity.
