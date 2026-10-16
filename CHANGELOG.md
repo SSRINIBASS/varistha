@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Phase 7 — Docs, Packaging and Launch
 
+- `examples/`: Ready-to-run sandbox agent specifications and documentation:
+  - `lead-researcher.yaml`: B2B lead enrichment & personalized outreach agent (Autonomy L1 with human approval gate).
+  - `competitor-intel.yaml`: Market intelligence & pricing monitor with daily cron schedule trigger (Autonomy L2).
+  - `support-triager.yaml`: Customer support triage and response drafter with webhook trigger (Autonomy L1).
+  - `README.md`: Sandbox execution guide explaining registration, triggering runs, and reviewing approvals.
+- `packages/spec/tests/test_examples_validity.py`: Automated test suite validating that all `examples/*.yaml` strictly conform to the `varistha-spec` Pydantic models.
+
 - `docs/guides/`: Complete operator and developer documentation suite:
   - `quickstart.md`: 5-minute quickstart from zero dependencies to running first agent with approval and OTel trace stream.
   - `concepts.md`: Deep dive on Three Pillars (Build, Run, Govern), Lifecycle stages (Draft, Prototype, Staging, Production, Deprecated, Retired), Autonomy levels (L0 to L4), Policy Engine, and Spending Limits.

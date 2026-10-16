@@ -1,0 +1,38 @@
+apiVersion: varistha/v1
+kind: Agent
+metadata:
+  name: support-triager
+  owner: support@example.com
+  stage: prototype
+  version: 0.1.0
+spec:
+  role: >
+    Triage incoming customer tickets, search knowledge documentation,
+    and draft verified resolution recommendations for support engineers.
+  model:
+    primary: gpt-4o-mini
+    fallback: gpt-3.5-turbo
+  instructions: |
+    Analyze inbound customer tickets.
+    Identify category, urgency, and affected features.
+    Draft a suggested response referencing documentation links.
+  plugins:
+    - name: web-fetch
+      enabled: true
+    - name: email-draft
+      enabled: true
+  autonomy: L1
+  guardrails:
+    input:
+      - pii-redact
+      - injection-scan
+    output:
+      - schema-valid
+    tools:
+      - outbound-needs-approval
+  budget:
+    max_usd_per_run: 0.25
+    max_usd_per_day: 15.00
+  triggers:
+    - type: webhook
+    - type: manual

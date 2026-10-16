@@ -1,0 +1,38 @@
+apiVersion: varistha/v1
+kind: Agent
+metadata:
+  name: competitor-intel
+  owner: strategy@example.com
+  stage: prototype
+  version: 0.1.0
+spec:
+  role: >
+    Monitor competitor pricing pages, product documentation, and release changelogs
+    for strategic positioning adjustments.
+  model:
+    primary: gpt-4o-mini
+    fallback: gpt-3.5-turbo
+  instructions: |
+    Scrape competitor pricing updates and changelogs.
+    Extract changes to packaging, tiers, or features.
+    Summarize weekly competitive movements.
+  plugins:
+    - name: web-search
+      enabled: true
+    - name: web-scrape
+      enabled: true
+    - name: crm-export
+      enabled: true
+  autonomy: L2
+  guardrails:
+    input:
+      - pii-redact
+    output:
+      - schema-valid
+  budget:
+    max_usd_per_run: 1.00
+    max_usd_per_day: 20.00
+  triggers:
+    - type: schedule
+      cron: "0 6 * * 1-5"
+    - type: manual

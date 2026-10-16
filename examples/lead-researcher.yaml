@@ -1,0 +1,38 @@
+apiVersion: varistha/v1
+kind: Agent
+metadata:
+  name: lead-researcher
+  owner: growth@example.com
+  stage: prototype
+  version: 0.1.0
+spec:
+  role: >
+    Find and qualify B2B accounts matching our ICP, extract verified executives,
+    and draft a personalized outreach email.
+  model:
+    primary: gpt-4o-mini
+    fallback: gpt-3.5-turbo
+  instructions: |
+    Given a target company domain:
+    1. Search the web for recent product announcements and key executives.
+    2. Extract key leadership and verified contact information.
+    3. Draft a tailored 3-paragraph introductory outreach note.
+  plugins:
+    - name: web-fetch
+      enabled: true
+    - name: email-draft
+      enabled: true
+  autonomy: L1
+  guardrails:
+    input:
+      - pii-redact
+      - injection-scan
+    output:
+      - schema-valid
+    tools:
+      - outbound-needs-approval
+  budget:
+    max_usd_per_run: 0.50
+    max_usd_per_day: 10.00
+  triggers:
+    - type: manual
