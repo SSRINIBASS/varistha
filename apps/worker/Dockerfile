@@ -18,4 +18,6 @@ COPY apps/worker/src/ apps/worker/src/
 COPY packages/spec/src/ packages/spec/src/
 COPY packages/sdk/src/ packages/sdk/src/
 
+ENV PYTHONPATH="/app/apps/worker:/app/apps/api/src:/app/packages/spec/src:/app/packages/sdk/src"
+
 CMD ["uv", "run", "--package", "varistha-worker", "python", "-m", "src.worker"]

@@ -21,6 +21,8 @@ COPY apps/api/src/ apps/api/src/
 COPY packages/spec/src/ packages/spec/src/
 COPY packages/sdk/src/ packages/sdk/src/
 
+ENV PYTHONPATH="/app/apps/api/src:/app/packages/spec/src:/app/packages/sdk/src"
+
 EXPOSE 8000
 
 CMD ["uv", "run", "--package", "varistha-api", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
