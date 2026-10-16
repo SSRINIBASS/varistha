@@ -14,10 +14,17 @@ from shared.guardrails.interface import (
 )
 
 _OVERRIDE_PATTERNS = [
-    re.compile(r"(?i)\bignore\s+(?:all\s+)?(?:previous|prior|above)\s+instructions\b"),
-    re.compile(r"(?i)\bdisregard\s+(?:all\s+)?(?:previous|prior|above)\s+instructions\b"),
-    re.compile(r"(?i)\bforget\s+(?:all\s+)?(?:previous|prior)\s+instructions\b"),
+    re.compile(
+        r"(?i)\bignore\s+(?:all\s+)?(?:previous|prior|above)\s+(?:instructions|rules|guidelines)\b"
+    ),
+    re.compile(
+        r"(?i)\bdisregard\s+(?:all\s+)?(?:previous|prior|above)\s+(?:instructions|rules|guidelines)\b"
+    ),
+    re.compile(
+        r"(?i)\bforget\s+(?:your\s+|all\s+)?(?:previous|prior|system)\s+(?:instructions|rules|guidelines)\b"
+    ),
     re.compile(r"(?i)\bignore\s+(?:your\s+)?system\s+prompt\b"),
+    re.compile(r"(?i)\bsystem\s+override\b"),
     re.compile(r"(?i)\byou\s+are\s+now\s+(?:in\s+)?dan\s+mode\b"),
     re.compile(r"(?i)\bdo\s+anything\s+now\b"),
     re.compile(r"(?i)\bact\s+as\s+an\s+unrestricted\s+ai\b"),

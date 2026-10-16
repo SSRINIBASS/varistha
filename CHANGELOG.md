@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `schemas.py`: `CreateSecretRequest`, `SecretMetadataResponse` (securely omitting secret values), and `SecretValueResponse`.
   - `router.py`: REST routes `POST /api/v1/auth/secrets` (Admin only), `GET /api/v1/auth/secrets` (Operator/Admin), `GET /api/v1/auth/secrets/{name}` (Admin only), and `DELETE /api/v1/auth/secrets/{name}` (Admin only).
   - `tests/test_secrets.py`: Integration and RBAC test suite validating vault lifecycle, encrypted at rest storage, zero-leak metadata listings, and role boundary enforcement.
+- `docs/security/`: Formal threat modeling and security architecture documentation:
+  - `threat-model.md`: Detailed STRIDE and OWASP Top 10 for LLM Applications (2025) threat model covering indirect prompt injection, SSRF, outbound tool approval bypassing, telemetry credential leakage, and runaway agent defenses.
+  - `checklist.md`: Operational production readiness checklist auditing authentication, encryption at rest, untrusted output quarantine, SSRF denylists, and compliance guardrails.
+- `apps/api/src/shared/guardrails/builtin/injection.py`: Strengthened override patterns to detect system instruction overrides, delimiter tampering, and rules circumvention.
+- `apps/api/src/shared/tests/test_security_audit.py`: End-to-end automated security verification suite testing all 7 core invariants (SSRF IP matrix, prompt injection quarantine, outbound approval enforcement, zero-secret telemetry redaction, AES-256-GCM tamper defense, vault zero-leakage, and RBAC boundary denial).
 
 ### Phase 5 — Plugin Ecosystem & Role Packs
 
