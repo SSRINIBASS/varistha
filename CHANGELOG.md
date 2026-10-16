@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Phase 7 — Docs, Packaging and Launch
 
+- `docs/launch/launch-playbook.md`: Comprehensive public launch kit including core positioning narrative, Hacker News "Show HN" copy and story lead, Reddit posts for `r/selfhosted` and `r/LocalLLaMA`, Product Hunt launch kit, social media launch threads, and community feedback triage protocols.
+- `docs/ROADMAP.md`: Public architectural roadmap for Varistha detailing upcoming releases: v0.2.0 (Hatchet/Temporal distributed runtime adapters, Slack/Discord MCP plugins), v0.3.0 (Kubernetes Helm chart, diff-to-eval synthesis), and v1.0.0 (collaborative multi-agent collective and continuous red-teaming).
+- `apps/api/src/shared/tests/test_launch_assets.py`: Automated test suite validating launch playbook copies, channel sections, quickstart references, and roadmap milestone integrity.
+
 - `examples/`: Ready-to-run sandbox agent specifications and documentation:
   - `lead-researcher.yaml`: B2B lead enrichment & personalized outreach agent (Autonomy L1 with human approval gate).
   - `competitor-intel.yaml`: Market intelligence & pricing monitor with daily cron schedule trigger (Autonomy L2).
