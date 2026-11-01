@@ -37,7 +37,7 @@ docker compose -f deploy/docker-compose.yml ps
 You can now open:
 - **Control Plane UI**: [http://localhost:3000](http://localhost:3000)
 - **API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Health Check**: [http://localhost:8000/health](http://localhost:8000/healthz)
+- **Health Check**: [http://localhost:8000/health](http://localhost:8000/health)
 
 ---
 
