@@ -1,3 +1,9 @@
+<div align="center">
+
+<img src="assets/portfolio-preview.svg" width="100%" alt="Varistha agent operations control plane architecture"/>
+
+</div>
+
 # Varistha
 
 <p>
