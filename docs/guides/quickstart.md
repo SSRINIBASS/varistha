@@ -1,6 +1,6 @@
-# 5-Minute Quickstart Guide
+# Local Quickstart Guide
 
-Get Varistha up and running, deploy your first AI employee, trigger an execution, review a human-in-the-loop approval, and view the OpenTelemetry trace waterfall in under five minutes.
+Bring up the current Varistha development stack, inspect the API and UI, and explore the agent specification workflow. Varistha is actively evolving; runtime and worker behaviour may change between revisions.
 
 ---
 
@@ -13,9 +13,9 @@ Before starting, ensure you have installed:
 
 ---
 
-## 2. Launch Control Plane Services
+## 2. Launch the Development Stack
 
-Varistha includes a zero-dependency Docker Compose configuration bringing up PostgreSQL 16 (with pgvector), the FastAPI Core API, the Worker Engine, and the Next.js Dashboard:
+The Compose configuration starts PostgreSQL 16 with pgvector, the FastAPI API, the worker package, and the Next.js dashboard. The worker lifecycle and end-to-end production behaviour are still under active development:
 
 ```bash
 # Clone the repository
@@ -37,7 +37,7 @@ docker compose -f deploy/docker-compose.yml ps
 You can now open:
 - **Control Plane UI**: [http://localhost:3000](http://localhost:3000)
 - **API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Health Check**: [http://localhost:8000/healthz](http://localhost:8000/healthz)
+- **Health Check**: [http://localhost:8000/health](http://localhost:8000/healthz)
 
 ---
 
