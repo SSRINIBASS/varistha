@@ -93,7 +93,7 @@ The default local endpoints are:
 
 - Dashboard: [http://localhost:3000](http://localhost:3000)
 - API documentation: [http://localhost:8000/docs](http://localhost:8000/docs)
-- Health endpoint: [http://localhost:8000/healthz](http://localhost:8000/healthz)
+- Health endpoint: [http://localhost:8000/health](http://localhost:8000/healthz)
 
 See the [Quickstart guide](docs/guides/quickstart.md) for the current development workflow.
 
