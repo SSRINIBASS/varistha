@@ -1,12 +1,23 @@
 # Varistha
 
+<p>
+  <img src="https://img.shields.io/badge/Status-Active%20Development-7C3AED?style=for-the-badge"/>
+  <img src="https://img.shields.io/github/actions/workflow/status/SSRINIBASS/varistha/ci.yml?branch=master&style=for-the-badge&label=CI"/>
+  <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/License-Apache%202.0-0F766E?style=for-the-badge"/>
+</p>
+
+<p>
+  <a href="https://skillicons.dev"><img src="https://skillicons.dev/icons?i=python,fastapi,nextjs,ts,postgres,docker,githubactions&perline=7" alt="Varistha technology stack"/></a>
+</p>
+
 **An open-source control-plane prototype for building, executing, governing, and observing AI agents.**
 
 Varistha explores the application infrastructure around AI agents: versioned agent specifications, controlled execution, policy enforcement, human approvals, evaluation, identity, and trace-level observability.
 
 > **Project status:** Active development. The repository contains working API, runtime, governance, observability, identity, plugin-host, and UI components. It is not yet presented as a production-certified or high-availability platform.
 
-## Architecture
+## 🏗️ Architecture
 
 ```mermaid
 flowchart TB
@@ -23,7 +34,7 @@ flowchart TB
     API --> OTEL[OpenTelemetry]
 ```
 
-## Implemented areas
+## 🧩 Implemented areas
 
 ### Agent registry and lifecycle
 Versioned agent specifications, schema validation, revision comparison, lifecycle transitions, and promotion gates.
@@ -43,7 +54,7 @@ OpenTelemetry instrumentation for model calls, token usage, cost, execution stat
 ### Identity and extensibility
 JWT-based identity, API-key handling, encrypted secret storage, and a plugin-host interface.
 
-## Technology
+## 🧰 Technology
 
 | Layer | Technology |
 |---|---|
@@ -55,7 +66,7 @@ JWT-based identity, API-key handling, encrypted secret storage, and a plugin-hos
 | Testing and quality | pytest, Ruff, Pyright, Bandit, pip-audit |
 | Development and deployment | uv workspace, Docker Compose, GitHub Actions |
 
-## Quality gates
+## ✅ Quality gates
 
 The GitHub Actions CI workflow checks:
 
@@ -68,7 +79,7 @@ The GitHub Actions CI workflow checks:
 
 These are automated repository checks, not a substitute for an independent security assessment or production load testing.
 
-## Quick start
+## 🚀 Quick start
 
 ### Prerequisites
 
@@ -93,11 +104,11 @@ The default local endpoints are:
 
 - Dashboard: [http://localhost:3000](http://localhost:3000)
 - API documentation: [http://localhost:8000/docs](http://localhost:8000/docs)
-- Health endpoint: [http://localhost:8000/health](http://localhost:8000/healthz)
+- Health endpoint: [http://localhost:8000/health](http://localhost:8000/health)
 
 See the [Quickstart guide](docs/guides/quickstart.md) for the current development workflow.
 
-## Repository structure
+## 📁 Repository structure
 
 ```text
 apps/
@@ -113,12 +124,12 @@ deploy/      Docker Compose and deployment configuration
 docs/        Guides, runbooks, architecture and security notes
 ```
 
-## Development status and security
+## 🔐 Development status and security
 
 Varistha is evolving quickly. Runtime orchestration, worker deployment, integrations, and operational hardening require further validation before production use. Review the [threat model](docs/security/threat-model.md), use unique local secrets, and do not expose an unreviewed development deployment to the public internet.
 
 Contributions and technical feedback are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## License
+## 📄 License
 
 Apache License 2.0 — see [LICENSE](LICENSE).
