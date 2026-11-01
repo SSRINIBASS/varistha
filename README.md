@@ -2,7 +2,7 @@
 
 <p>
   <img src="https://img.shields.io/badge/Status-Active%20Development-7C3AED?style=for-the-badge"/>
-  <img src="https://img.shields.io/github/actions/workflow/status/SSRINIBASS/varistha/ci.yml?branch=master&style=for-the-badge&label=CI"/>
+  <a href="https://github.com/SSRINIBASS/varistha/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/GitHub%20Actions-Quality%20Gates-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="CI quality gates"/></a>
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
   <img src="https://img.shields.io/badge/License-Apache%202.0-0F766E?style=for-the-badge"/>
 </p>
