@@ -132,7 +132,7 @@ docs/        Guides, runbooks, architecture and security notes
 
 ## 🔐 Development status and security
 
-Varistha is evolving quickly. Runtime orchestration, worker deployment, integrations, and operational hardening require further validation before production use. Review the [threat model](docs/security/threat-model.md), use unique local secrets, and do not expose an unreviewed development deployment to the public internet.
+Varistha is evolving quickly. Runtime orchestration, worker deployment, integrations, and operational hardening require further validation before production use. The latest CI run passes Python tests, frontend lint/type checks, architecture-boundary checks, and Python lint/type checks; its dependency-audit job remains failing because `pip-audit` flags known vulnerabilities in the locked `certifi` and `filelock` versions. This is deliberately left visible rather than suppressed. Review the [threat model](docs/security/threat-model.md), refresh the dependency lock before production use, use unique local secrets, and do not expose an unreviewed development deployment to the public internet.
 
 Contributions and technical feedback are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
